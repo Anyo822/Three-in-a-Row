@@ -9,13 +9,27 @@ GameBoard::GameBoard(QObject *parent, size_t board_dimension)
       generator(std::chrono::system_clock::now().time_since_epoch().count()),
       randomColor(0, m_colors.size() - 1)
 {
-    m_board.resize(board_dimension);
+//    m_board.reserve(board_dimension);
+//    //reserve may behave differently from resize
+//    for (int i = 0; i < board_dimension; ++i) {
+//        m_board[i].reserve(board_dimension);
+//    }
 
     for (int i = 0; i < board_dimension; ++i) {
-        m_board[i].resize(board_dimension);
+        m_board.append(QList<QColor>());
+
+        for (int j = 0; j < board_dimension; ++j) {
+            m_board[i].append(QColor());
+        }
     }
 
     shuffle();
+    beginResetModel();
+    m_board[0].removeAt(7);
+    m_board[0].insert(7, "black");
+    endResetModel();
+
+    //test
 }
 
 void GameBoard::generateBoard()
@@ -89,13 +103,13 @@ bool GameBoard::generationCHeck()
     return false;
 }
 
-void GameBoard::removeMarkedTiles(std::deque<IteratorPosition> &markedTiles)
+void GameBoard::removeMarkedTiles(std::deque<Position> &markedTiles)
 {
     for (auto& tile : markedTiles) {
-        tile.first->erase(tile.second);
+        m_board.removeAt(tile.first * m_dimension + tile.second);
     }
 }
-
+//change to eraseAt
 void GameBoard::addNewTiles(std::deque<IteratorPosition> &markedTiles)
 {
     for (auto& tile : markedTiles) {
