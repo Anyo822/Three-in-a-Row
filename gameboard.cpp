@@ -40,40 +40,35 @@ void GameBoard::generateBoard()
     endResetModel();
 }
 
-bool GameBoard::generationCHeck()
+bool GameBoard::generationCheck()
 {
     for (int y = 0; y < m_board.size(); ++y) {
         for (int x = 0; x < m_board[0].size(); ++x) {
             size_t offset = 1;
-            markedTiles.push_back(Position(y, x));
+            m_markedTiles.push_back(Position(y, x));
 
             while (offset + x < m_board[0].size() && m_board[y][x] == m_board[y][x + offset]) {
+                m_markedTiles.push_back(Position(y, x + offset));
                 offset++;
 
-                markedTiles.push_back(Position(y, x + offset));
-
-                if (offset >= 3 && (offset + x) >= m_board[0].size()) { //or m_board[y][x] != m_board[y][x + offset])
+                if (offset >= 3 && ((offset + x) >= m_board[0].size() || m_board[y][x] != m_board[y][x + offset])) {
                     return true;
                 }
-                else {
-                    markedTiles.clear();
-                }
             }
+            m_markedTiles.clear();
 
             offset = 1;
-            markedTiles.push_back(Position(y, x));
+            m_markedTiles.push_back(Position(y, x));
 
             while (offset + y < m_board.size() && m_board[y][x] == m_board[y + offset][x]) {
+                m_markedTiles.push_back(Position(y + offset, x));
                 offset++;
 
-                markedTiles.push_back(Position(y + offset, x));
-                if (offset >= 3 && (offset + y) >= m_board.size()) { //or m_board[y][x] != m_board[y][x + offset])
+                if (offset >= 3 && ((offset + y) >= m_board.size() || m_board[y][x] != m_board[y + offset][x])) {
                     return true;
                 }
-                else {
-                    markedTiles.clear();
-                }
             }
+            m_markedTiles.clear();
 
             //add tile marking for deletion
         }
@@ -106,24 +101,29 @@ bool GameBoard::generationCHeck()
     }
     */
 
-
-
-
-
     return false;
 }
 
 void GameBoard::removeMarkedTiles()
 {
-    for (auto& tile : markedTiles) {
+    for (auto& tile : m_markedTiles) {
+        beginRemoveRows(QModelIndex(), getIndex(tile), getIndex(tile));
         m_board[tile.first].removeAt(tile.second);
+
+        beginInsertRows(QModelIndex(), getIndex(Position(tile.first, 0)), getIndex(Position(tile.first, 0)));
+        m_board[tile.first].push_front(getRandomColor());
+        endInsertRows();
+
+        endRemoveRows();
     }
 }
 
 void GameBoard::addNewTiles()
 {
-    for (auto& tile : markedTiles) {
-        m_board[tile.first].insert(tile.second, getRandomColor());
+    for (auto& tile : m_markedTiles) {
+        beginInsertRows(QModelIndex(), 0, 0);
+        m_board[tile.first].push_front(getRandomColor());
+        endInsertRows();
     }
 }
 
@@ -147,6 +147,26 @@ void GameBoard::switchTiles(int indexFrom, int indexTo)
     std::swap(m_board[positionFrom.first][positionFrom.second], m_board[positionTo.first][positionTo.second]);
 }
 
+void GameBoard::moveMade(int indexFrom, int indexTo)
+{
+    switchTiles(indexFrom, indexTo);
+
+    if (generationCheck()) {
+        removeMarkedTiles();
+        //addNewTiles();
+        m_markedTiles.clear();
+
+        while (generationCheck()) {
+            removeMarkedTiles();
+            //addNewTiles();
+            m_markedTiles.clear();
+        }
+    }
+    else {
+        switchTiles(indexTo, indexFrom);
+    }
+}
+
 GameBoard::Position GameBoard::getRowCol(size_t index) const
 {
     Q_ASSERT(m_dimension > 0);
@@ -154,6 +174,13 @@ GameBoard::Position GameBoard::getRowCol(size_t index) const
     size_t column = index % m_dimension;
 
     return std::make_pair(row, column);
+}
+
+int GameBoard::getIndex(const GameBoard::Position position) const
+{
+    Q_ASSERT(m_dimension > 0);
+
+    return position.first * m_dimension + position.second;
 }
 
 QColor GameBoard::getRandomColor()
@@ -182,5 +209,5 @@ void GameBoard::shuffle()
 {
     do {
         generateBoard();
-    } while (generationCHeck());
+    } while (generationCheck());
 }

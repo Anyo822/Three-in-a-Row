@@ -22,12 +22,14 @@ public:
     Q_INVOKABLE void shuffle();
 
     void generateBoard();
-    bool generationCHeck();
+    bool generationCheck();
     void removeMarkedTiles();
     void addNewTiles();
-    Q_INVOKABLE void switchTiles(int indexFrom, int indexTo);
+    void switchTiles(int indexFrom, int indexTo);
+    Q_INVOKABLE void moveMade(int indexFrom, int indexTo);
 
     Position getRowCol(const size_t index) const;
+    int getIndex(const Position position) const;
 
 private:
     QColor getRandomColor();
@@ -38,5 +40,5 @@ private:
                                         QColor("violet"), QColor("yellow")};
     std::uniform_int_distribution<int> randomColor;
     QList<QList<QColor>> m_board;
-    std::deque<Position> markedTiles;
+    std::deque<Position> m_markedTiles;
 };

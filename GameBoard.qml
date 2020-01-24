@@ -38,7 +38,7 @@ GridView {
 
                 function setIndex() {
                     if(currentIndex != -1 && currentIndex != index) {
-                        root.model.switchTiles(currentIndex, index);
+                        root.model.moveMade(currentIndex, index);
                         currentIndex = -1;
                     }
                     else {
