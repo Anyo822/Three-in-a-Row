@@ -24,11 +24,6 @@ GameBoard::GameBoard(QObject *parent, size_t board_dimension)
     }
 
     shuffle();
-    beginResetModel();
-    m_board[0].removeAt(7);
-    m_board[0].insert(7, "black");
-    endResetModel();
-
     //test
 }
 
@@ -38,8 +33,7 @@ void GameBoard::generateBoard()
 
     for (auto& yElement : m_board) {
         for (auto& xElement : yElement) {
-            std::uniform_int_distribution<int> randomColor(0, m_colors.size() - 1);
-            xElement = m_colors[randomColor(generator)];
+            xElement = getRandomColor();
         }
     }
 
@@ -51,21 +45,37 @@ bool GameBoard::generationCHeck()
     for (int y = 0; y < m_board.size(); ++y) {
         for (int x = 0; x < m_board[0].size(); ++x) {
             size_t offset = 1;
+            markedTiles.push_back(Position(y, x));
 
             while (offset + x < m_board[0].size() && m_board[y][x] == m_board[y][x + offset]) {
                 offset++;
 
-                if (offset >= 3)
+                markedTiles.push_back(Position(y, x + offset));
+
+                if (offset >= 3 && (offset + x) >= m_board[0].size()) { //or m_board[y][x] != m_board[y][x + offset])
                     return true;
+                }
+                else {
+                    markedTiles.clear();
+                }
             }
 
             offset = 1;
+            markedTiles.push_back(Position(y, x));
+
             while (offset + y < m_board.size() && m_board[y][x] == m_board[y + offset][x]) {
                 offset++;
 
-                if (offset >= 3)
+                markedTiles.push_back(Position(y + offset, x));
+                if (offset >= 3 && (offset + y) >= m_board.size()) { //or m_board[y][x] != m_board[y][x + offset])
                     return true;
+                }
+                else {
+                    markedTiles.clear();
+                }
             }
+
+            //add tile marking for deletion
         }
     }
 
@@ -103,19 +113,38 @@ bool GameBoard::generationCHeck()
     return false;
 }
 
-void GameBoard::removeMarkedTiles(std::deque<Position> &markedTiles)
+void GameBoard::removeMarkedTiles()
 {
     for (auto& tile : markedTiles) {
-        m_board.removeAt(tile.first * m_dimension + tile.second);
+        m_board[tile.first].removeAt(tile.second);
     }
 }
-//change to eraseAt
-void GameBoard::addNewTiles(std::deque<IteratorPosition> &markedTiles)
+
+void GameBoard::addNewTiles()
 {
     for (auto& tile : markedTiles) {
-        std::uniform_int_distribution<int> randomColor(0, m_colors.size() - 1);
-        tile.first->push_front(m_colors[randomColor(generator)]);
+        m_board[tile.first].insert(tile.second, getRandomColor());
     }
+}
+
+void GameBoard::switchTiles(int indexFrom, int indexTo)
+{
+    Position positionFrom = getRowCol(indexFrom);
+    Position positionTo = getRowCol(indexTo);
+
+    int offsetDirection = indexTo - indexFrom;
+    int offset = offsetDirection == -1 ? 1 : 0;
+
+    beginMoveRows(QModelIndex {}, indexTo, indexTo, QModelIndex {}, indexFrom + offset);
+    endMoveRows();
+
+    if (std::abs(indexFrom - indexTo) > 1) {
+        offset = offsetDirection > 0 ? 1 : 0;
+        beginMoveRows(QModelIndex {}, indexFrom + offset, indexFrom + offset, QModelIndex {}, indexTo + offset);
+        endMoveRows();
+    }
+
+    std::swap(m_board[positionFrom.first][positionFrom.second], m_board[positionTo.first][positionTo.second]);
 }
 
 GameBoard::Position GameBoard::getRowCol(size_t index) const
@@ -125,6 +154,11 @@ GameBoard::Position GameBoard::getRowCol(size_t index) const
     size_t column = index % m_dimension;
 
     return std::make_pair(row, column);
+}
+
+QColor GameBoard::getRandomColor()
+{
+    return m_colors[randomColor(generator)];
 }
 
 int GameBoard::rowCount(const QModelIndex &parent) const

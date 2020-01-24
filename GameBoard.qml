@@ -4,6 +4,8 @@ import ThreeInARow 1.0
 GridView {
     id: root
 
+    property int selectedIndex: -1
+
     cellHeight: height / 8
     cellWidth: width / 8
 
@@ -12,12 +14,40 @@ GridView {
 
     model: GameBoardModel {}
 
-    delegate: Rectangle {
+    delegate: Item {
         width: root.cellWidth
         height: root.cellHeight
-        radius: 20
 
-        color: decoration
-        border.color: "black"
+        Rectangle {
+            id: tile
+
+            width: root.cellWidth < root.cellHeight ? root.cellWidth : root.cellHeight
+            height: width
+            radius: width * 0.5
+
+            color: index == currentIndex ? Qt.darker(decoration) : decoration
+            border.color: "black"
+            border.width: 1
+
+            MouseArea {
+                anchors.fill: parent
+
+                onClicked: {
+                    selectedIndex: setIndex()
+                }
+
+                function setIndex() {
+                    if(currentIndex != -1 && currentIndex != index) {
+                        root.model.switchTiles(currentIndex, index);
+                        currentIndex = -1;
+                    }
+                    else {
+                        currentIndex = index;
+                    }
+                }
+            }
+        }
     }
+
+    currentIndex: -1
 }

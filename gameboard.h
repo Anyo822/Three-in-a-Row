@@ -23,16 +23,20 @@ public:
 
     void generateBoard();
     bool generationCHeck();
-    void removeMarkedTiles(std::deque<Position> &markedTiles);
-    void addNewTiles(std::deque<IteratorPosition> &markedTiles);
+    void removeMarkedTiles();
+    void addNewTiles();
+    Q_INVOKABLE void switchTiles(int indexFrom, int indexTo);
 
     Position getRowCol(const size_t index) const;
 
 private:
+    QColor getRandomColor();
+
     const size_t m_dimension;
     std::mt19937 generator;
     const std::vector<QColor> m_colors {QColor("red"), QColor("green"),QColor("blue"),
-                                  QColor("violet"), QColor("yellow")};
+                                        QColor("violet"), QColor("yellow")};
     std::uniform_int_distribution<int> randomColor;
     QList<QList<QColor>> m_board;
+    std::deque<Position> markedTiles;
 };
