@@ -27,21 +27,6 @@ GameBoard::GameBoard(QObject *parent, size_t board_dimension)
     //test
 }
 
-namespace {
-    bool isAdjacent(const GameBoard::Position f, const GameBoard::Position s)
-    {
-        if(f == s) {
-            return false;
-        }
-
-        const auto calcDistance = [](const size_t pos1, const size_t pos2) {
-            return std::abs(static_cast<int>(pos1) - static_cast<int>(pos2));
-        };
-
-        return calcDistance(f.first, s.first) + calcDistance(f.second, s.second) == 1;
-    }
-}
-
 void GameBoard::generateBoard()
 {
     beginResetModel();
@@ -229,4 +214,17 @@ void GameBoard::shuffle()
     do {
         generateBoard();
     } while (generationCheck());
+}
+
+bool GameBoard::isAdjacent(const Position f, const Position s)
+{
+    if(f == s) {
+        return false;
+    }
+
+    const auto calcDistance = [](const size_t pos1, const size_t pos2) {
+        return std::abs(static_cast<int>(pos1) - static_cast<int>(pos2));
+    };
+
+    return calcDistance(f.first, s.first) + calcDistance(f.second, s.second) == 1;
 }

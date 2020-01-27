@@ -33,6 +33,7 @@ public:
 
 private:
     QColor getRandomColor();
+    bool isAdjacent(const Position f, const Position s);
 
     const size_t m_dimension;
     std::mt19937 generator;
