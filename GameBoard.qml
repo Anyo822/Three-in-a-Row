@@ -4,8 +4,6 @@ import ThreeInARow 1.0
 GridView {
     id: root
 
-    property int selectedIndex: -1
-
     cellHeight: height / 8
     cellWidth: width / 8
 
@@ -33,7 +31,7 @@ GridView {
                 anchors.fill: parent
 
                 onClicked: {
-                    selectedIndex: setIndex()
+                    setIndex()
                 }
 
                 function setIndex() {
