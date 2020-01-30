@@ -7,8 +7,10 @@ GridView {
     cellHeight: height / 8
     cellWidth: width / 8
 
-    //flow: GridView.FlowTopToBottom
+    flow: GridView.FlowTopToBottom
     interactive: false
+
+    currentIndex: -1
 
     model: GameBoardModel {}
 
@@ -31,13 +33,12 @@ GridView {
                 anchors.fill: parent
 
                 onClicked: {
-                    setIndex()
-                }
-
-                function setIndex() {
-                    if(currentIndex != -1 && currentIndex != index) {
+                    if (currentIndex != -1 && currentIndex != index) {
                         root.model.moveMade(currentIndex, index);
                         currentIndex = -1;
+                    }
+                    else if (currentIndex == index) {
+                        currentIndex = -1
                     }
                     else {
                         currentIndex = index;
@@ -46,6 +47,16 @@ GridView {
             }
         }
     }
-
-    currentIndex: -1
+    add: Transition {
+        NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 400}
+        NumberAnimation { property: "scale"; from: 0; to: 1; duration: 400}
+        NumberAnimation { properties: "x,y"; duration: 400}
+    }
+    remove: Transition {
+        NumberAnimation { property: "opacity"; from: 1; to: 0; duration: 400}
+        NumberAnimation { property: "scale"; from: 1; to: 0; duration: 400}
+    }
+    displaced: Transition {
+        NumberAnimation { properties: "x,y"; duration: 400}
+    }
 }

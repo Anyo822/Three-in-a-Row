@@ -16,8 +16,8 @@ public:
 
     GameBoard(QObject *parent = nullptr, size_t board_dimension = defaultPuzzleDimension);
 
-    int rowCount(const QModelIndex& parent = QModelIndex {}) const override;
-    QVariant data(const QModelIndex& index, int role = Qt::DecorationRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex {}) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DecorationRole) const override;
 
     Q_INVOKABLE void shuffle();
 
