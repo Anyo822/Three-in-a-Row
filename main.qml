@@ -8,10 +8,16 @@ Window {
     width: 480
     height: 480
 
-    GameBoard {
-        id: gameBoard
+    Rectangle {
         anchors.fill: parent
         anchors.topMargin: root.height / 6
+
+        color: "lightGray"
+
+        GameBoard {
+            id: gameBoard
+            anchors.fill: parent
+        }
     }
 
     Rectangle {

@@ -3,6 +3,10 @@
 #include <deque>
 #include <vector>
 #include <QColor>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QFile>
 
 class GameBoard : public QAbstractListModel
 {
@@ -26,20 +30,21 @@ public:
     void removeMarkedTiles();
     void addNewTiles();
     void switchTiles(int indexFrom, int indexTo);
-    Q_INVOKABLE void moveMade(int indexFrom, int indexTo);
+    Q_INVOKABLE bool makeMove(int indexFrom, int indexTo);
 
     Position getRowCol(const size_t index) const;
     int getIndex(const Position position) const;
 
 private:
+    void readJson();
     QColor getRandomColor();
     bool isAdjacent(const Position f, const Position s);
 
-    const size_t m_dimension;
+    size_t m_boardWidth;
+    size_t m_boardHeight;
     std::mt19937 generator;
-    const std::vector<QColor> m_colors {QColor("red"), QColor("green"),QColor("blue"),
-                                        QColor("violet"), QColor("yellow")};
-    std::uniform_int_distribution<int> randomColor;
+
     QList<QList<QColor>> m_board;
+    std::vector<QColor> m_colors;
     std::deque<Position> m_markedTiles;
 };

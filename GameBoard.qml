@@ -2,7 +2,7 @@ import QtQuick 2.0
 import ThreeInARow 1.0
 
 GridView {
-    id: root
+    id: gridView
 
     cellHeight: height / 8
     cellWidth: width / 8
@@ -15,13 +15,13 @@ GridView {
     model: GameBoardModel {}
 
     delegate: Item {
-        width: root.cellWidth
-        height: root.cellHeight
+        width: gridView.cellWidth
+        height: gridView.cellHeight
 
         Rectangle {
             id: tile
 
-            width: root.cellWidth < root.cellHeight ? root.cellWidth : root.cellHeight
+            width: gridView.cellWidth < gridView.cellHeight ? gridView.cellWidth : gridView.cellHeight
             height: width
             radius: width * 0.5
 
@@ -34,7 +34,7 @@ GridView {
 
                 onClicked: {
                     if (currentIndex != -1 && currentIndex != index) {
-                        root.model.moveMade(currentIndex, index);
+                        gridView.model.makeMove(currentIndex, index);
                         currentIndex = -1;
                     }
                     else if (currentIndex == index) {
@@ -47,16 +47,20 @@ GridView {
             }
         }
     }
+    move: Transition {
+        NumberAnimation { properties: "y,x"; duration: 400}
+    }
     add: Transition {
         NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 400}
         NumberAnimation { property: "scale"; from: 0; to: 1; duration: 400}
-        NumberAnimation { properties: "x,y"; duration: 400}
+        NumberAnimation { properties: "y"; duration: 400}
     }
     remove: Transition {
         NumberAnimation { property: "opacity"; from: 1; to: 0; duration: 400}
         NumberAnimation { property: "scale"; from: 1; to: 0; duration: 400}
     }
     displaced: Transition {
-        NumberAnimation { properties: "x,y"; duration: 400}
+        NumberAnimation { properties: "y"; duration: 3000}
     }
 }
+

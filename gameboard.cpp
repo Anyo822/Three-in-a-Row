@@ -5,14 +5,14 @@
 
 GameBoard::GameBoard(QObject *parent, size_t board_dimension)
     : QAbstractListModel (parent)
-    , m_dimension {board_dimension}
     , generator(std::chrono::system_clock::now().time_since_epoch().count())
-    , randomColor(0, m_colors.size() - 1)
 {
-    for (int i = 0; i < board_dimension; ++i) {
+    readJson();
+
+    for (int i = 0; i < m_boardHeight; ++i) {
         m_board.append(QList<QColor>());
 
-        for (int j = 0; j < board_dimension; ++j) {
+        for (int j = 0; j < m_boardWidth; ++j) {
             m_board[i].append(QColor());
         }
     }
@@ -110,7 +110,7 @@ void GameBoard::switchTiles(int indexFrom, int indexTo)
     std::swap(m_board[positionFrom.first][positionFrom.second], m_board[positionTo.first][positionTo.second]);
 }
 
-void GameBoard::moveMade(int indexFrom, int indexTo)
+bool GameBoard::makeMove(int indexFrom, int indexTo)
 {
     bool switchFound = false;
 
@@ -125,28 +125,56 @@ void GameBoard::moveMade(int indexFrom, int indexTo)
 
     if (!switchFound) {
         switchTiles(indexTo, indexFrom);
+
+        return false;
     }
+
+    return true;
 }
 
 GameBoard::Position GameBoard::getRowCol(size_t index) const
 {
-    Q_ASSERT(m_dimension > 0);
-    size_t row = index / m_dimension;
-    size_t column = index % m_dimension;
+    Q_ASSERT(m_boardHeight > 0 && m_boardWidth > 0);
+    size_t row = index / m_boardHeight;
+    size_t column = index % m_boardWidth;
 
     return std::make_pair(row, column);
 }
 
 int GameBoard::getIndex(const GameBoard::Position position) const
 {
-    Q_ASSERT(m_dimension > 0);
+    Q_ASSERT(m_boardHeight > 0);
 
-    return position.first * m_dimension + position.second;
+    return position.first * m_boardHeight + position.second;
+}
+
+void GameBoard::readJson()
+{
+    QFile inFile(":/settings.json");
+    inFile.open(QIODevice::ReadOnly|QIODevice::Text);
+    QByteArray data = inFile.readAll();
+    inFile.close();
+
+    QJsonParseError errorPtr;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &errorPtr);
+    if (doc.isNull()) {
+        qDebug() << "Parse failed";
+    }
+    QJsonObject rootObj = doc.object();
+
+    m_boardHeight = rootObj.value("height").toInt();
+    m_boardWidth = rootObj.value("width").toInt();
+
+    QJsonArray ptsArray = rootObj.value("colors").toArray();
+
+    for (const auto &element : ptsArray) {
+        m_colors.emplace_back(element.toString());
+    }
 }
 
 QColor GameBoard::getRandomColor()
 {
-    return m_colors[randomColor(generator)];
+    return m_colors[std::uniform_int_distribution<int>(0, m_colors.size() - 1)(generator)];
 }
 
 int GameBoard::rowCount(const QModelIndex &parent) const
