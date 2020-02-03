@@ -4,13 +4,15 @@ import ThreeInARow 1.0
 GridView {
     id: gridView
 
-    cellHeight: height / 8
-    cellWidth: width / 8
+    cellHeight: height / 4
+    cellWidth: width / 4
 
-    flow: GridView.FlowTopToBottom
+    //flow: GridView.FlowTopToBottom
     interactive: false
 
     currentIndex: -1
+    property int animationDuration: 2500
+    property int appearanceAnimationDuration: 1000
 
     model: GameBoardModel {}
 
@@ -48,19 +50,19 @@ GridView {
         }
     }
     move: Transition {
-        NumberAnimation { properties: "y,x"; duration: 400}
+        NumberAnimation { properties: "y,x"; duration: animationDuration}
     }
     add: Transition {
-        NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 400}
-        NumberAnimation { property: "scale"; from: 0; to: 1; duration: 400}
-        NumberAnimation { properties: "y"; duration: 400}
+        NumberAnimation { property: "opacity"; from: 0; to: 1; duration: appearanceAnimationDuration}
+        NumberAnimation { property: "scale"; from: 0; to: 1; duration: appearanceAnimationDuration}
+        NumberAnimation { properties: "y"; duration: animationDuration}
     }
     remove: Transition {
-        NumberAnimation { property: "opacity"; from: 1; to: 0; duration: 400}
-        NumberAnimation { property: "scale"; from: 1; to: 0; duration: 400}
+        NumberAnimation { property: "opacity"; from: 1; to: 0; duration: appearanceAnimationDuration}
+        NumberAnimation { property: "scale"; from: 1; to: 0; duration: appearanceAnimationDuration}
     }
     displaced: Transition {
-        NumberAnimation { properties: "y"; duration: 3000}
+        NumberAnimation { properties: "y"; duration: animationDuration}
     }
 }
 

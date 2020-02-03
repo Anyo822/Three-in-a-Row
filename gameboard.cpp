@@ -11,9 +11,13 @@ GameBoard::GameBoard(QObject *parent, size_t board_dimension)
 
     for (int i = 0; i < m_boardHeight; ++i) {
         m_board.append(QList<QColor>());
+        m_matchedRows.append(QList<int>());
+        m_matchedColumns.append(QList<int>());
 
         for (int j = 0; j < m_boardWidth; ++j) {
             m_board[i].append(QColor());
+            m_matchedRows[i].append(1);
+            m_matchedColumns[i].append(1);
         }
     }
 
@@ -46,6 +50,10 @@ bool GameBoard::generationCheck()
                 offset++;
             }
             if (offset >= 3) { //&& ((offset + x) >= m_board[y].size() || m_board[y][x] != m_board[y][x + offset])
+//                for(const auto &element : m_markedTiles) {
+//                    m_matchesMatrix[element.first][element.second] = offset;
+//                }
+
                 return true;
             }
             m_markedTiles.clear();
@@ -60,12 +68,21 @@ bool GameBoard::generationCheck()
                 offset++;
             }
             if (offset >= 3) { //&& ((offset + y) >= m_board.size() || x >= m_board[offset + y].size() || m_board[y][x] != m_board[y + offset][x])
+//                for(const auto &element : m_markedTiles) {
+//                    m_matchesMatrix[element.first][element.second] = offset;
+//                }
+
                 return true;
             }
             m_markedTiles.clear();
         }
     }
     return false;
+}
+
+void GameBoard::generateHorizontalMatchesMatrix()
+{
+
 }
 
 void GameBoard::removeMarkedTiles()
@@ -116,18 +133,20 @@ bool GameBoard::makeMove(int indexFrom, int indexTo)
 
     switchTiles(indexFrom, indexTo);
 
-    while (generationCheck()) {
-        removeMarkedTiles();
-        addNewTiles();
-        m_markedTiles.clear();
-        switchFound = true;
-    }
+    generateMatches();
 
-    if (!switchFound) {
-        switchTiles(indexTo, indexFrom);
+//    while (generationCheck()) {
+//        removeMarkedTiles();
+//        addNewTiles();
+//        m_markedTiles.clear();
+//        switchFound = true;
+//    }
 
-        return false;
-    }
+//    if (!switchFound) {
+//        switchTiles(indexTo, indexFrom);
+
+//        return false;
+//    }
 
     return true;
 }
@@ -200,9 +219,13 @@ QVariant GameBoard::data(const QModelIndex &index, int role) const
 
 void GameBoard::shuffle()
 {
-    do {
-        generateBoard();
-    } while (generationCheck());
+//    do {
+//        generateBoard();
+//    } while (generationCheck());
+
+    generateBoard();
+
+    generateMatches();
 }
 
 bool GameBoard::isAdjacent(const Position f, const Position s)
@@ -217,3 +240,78 @@ bool GameBoard::isAdjacent(const Position f, const Position s)
 
     return calcDistance(f.first, s.first) + calcDistance(f.second, s.second) == 1;
 }
+
+int GameBoard::setCellRows(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks)
+{
+    if (columntIndex >= m_board[rowIndex].size() - 1) {
+        m_matchedRows[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
+
+        return m_matchedRows[rowIndex][columntIndex];
+    }
+
+    bool isNextCellTheSame = m_board[rowIndex][columntIndex] == m_board[rowIndex][columntIndex + 1];
+
+    if (isNextCellTheSame) {
+        m_matchedRows[rowIndex][columntIndex] = setCellRows(rowIndex, columntIndex + 1, initialValueOfMathcedBlocks + 1);
+    }
+    else {
+        setCellRows(rowIndex, columntIndex + 1, 1);
+        m_matchedRows[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
+    }
+
+    return m_matchedRows[rowIndex][columntIndex];
+}
+
+int GameBoard::setCellColumns(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks)
+{
+    if (rowIndex >= m_board.size() - 1) {
+        m_matchedColumns[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
+
+        return m_matchedColumns[rowIndex][columntIndex];
+    }
+
+    bool isNextCellTheSame = m_board[rowIndex][columntIndex] == m_board[rowIndex + 1][columntIndex];
+
+    if (isNextCellTheSame) {
+        m_matchedColumns[rowIndex][columntIndex] = setCellColumns(rowIndex + 1, columntIndex, initialValueOfMathcedBlocks + 1);
+    }
+    else {
+        setCellColumns(rowIndex + 1, columntIndex, 1);
+        m_matchedColumns[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
+    }
+
+    return m_matchedColumns[rowIndex][columntIndex];
+}
+
+void GameBoard::generateMatches()
+{
+    for (int i = 0; i < m_board.size(); ++i) {
+        setCellRows(i, 0, 1);
+    }
+
+    for (const auto &el : m_matchedRows) {
+        qDebug() << el;
+    }
+
+    qDebug() << "-----------------------";
+
+    for (int i = 0; i < m_board.size(); ++i) {
+        setCellColumns(0, i, 1);
+    }
+
+    for (const auto &el : m_matchedColumns) {
+        qDebug() << el;
+    }
+
+    qDebug() << "-----------------------";
+}
+
+
+
+
+
+
+
+
+
+

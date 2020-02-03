@@ -27,6 +27,7 @@ public:
 
     void generateBoard();
     bool generationCheck();
+    void generateHorizontalMatchesMatrix();
     void removeMarkedTiles();
     void addNewTiles();
     void switchTiles(int indexFrom, int indexTo);
@@ -39,12 +40,18 @@ private:
     void readJson();
     QColor getRandomColor();
     bool isAdjacent(const Position f, const Position s);
+    int setCellColumns(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks);
+    int setCellRows(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks);
+
+    void generateMatches();
 
     size_t m_boardWidth;
     size_t m_boardHeight;
     std::mt19937 generator;
 
     QList<QList<QColor>> m_board;
-    std::vector<QColor> m_colors;
+    std::deque<QColor> m_colors;
     std::deque<Position> m_markedTiles;
+    QList<QList<int>> m_matchedRows;
+    QList<QList<int>> m_matchedColumns;
 };
