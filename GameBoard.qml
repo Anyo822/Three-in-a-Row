@@ -7,14 +7,14 @@ GridView {
     cellHeight: height / 4
     cellWidth: width / 4
 
-    //flow: GridView.FlowTopToBottom
+    flow: GridView.FlowTopToBottom
     interactive: false
 
     currentIndex: -1
-    property int animationDuration: 2500
-    property int appearanceAnimationDuration: 1000
+    property int animationDuration: 2000
+    property int appearanceAnimationDuration: 750
 
-    model: GameBoardModel {}
+    model: GameBoardModel {} //run animation on signal
 
     delegate: Item {
         width: gridView.cellWidth
@@ -49,6 +49,7 @@ GridView {
             }
         }
     }
+
     move: Transition {
         NumberAnimation { properties: "y,x"; duration: animationDuration}
     }
@@ -62,7 +63,9 @@ GridView {
         NumberAnimation { property: "scale"; from: 1; to: 0; duration: appearanceAnimationDuration}
     }
     displaced: Transition {
-        NumberAnimation { properties: "y"; duration: animationDuration}
+        NumberAnimation { properties: "y,x"; duration: animationDuration}
     }
+
+    //check transition on comletion animation call
 }
 

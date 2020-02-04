@@ -9,15 +9,17 @@ GameBoard::GameBoard(QObject *parent, size_t board_dimension)
 {
     readJson();
 
-    for (int i = 0; i < m_boardHeight; ++i) {
+    for (size_t i = 0; i < m_boardHeight; ++i) {
         m_board.append(QList<QColor>());
         m_matchedRows.append(QList<int>());
         m_matchedColumns.append(QList<int>());
+        m_matchedTiles.append(QList<int>());
 
-        for (int j = 0; j < m_boardWidth; ++j) {
+        for (size_t j = 0; j < m_boardWidth; ++j) {
             m_board[i].append(QColor());
             m_matchedRows[i].append(1);
             m_matchedColumns[i].append(1);
+            m_matchedTiles[i].append(1);
         }
     }
 
@@ -80,9 +82,15 @@ bool GameBoard::generationCheck()
     return false;
 }
 
-void GameBoard::generateHorizontalMatchesMatrix()
+bool GameBoard::matchFound()
 {
+    for (auto &list : m_matchedTiles) {
+        if (std::any_of(list.begin(), list.end(), [](int value) { return value >= 3; })) {
+            return true;
+        }
+    }
 
+    return false;
 }
 
 void GameBoard::removeMarkedTiles()
@@ -129,24 +137,19 @@ void GameBoard::switchTiles(int indexFrom, int indexTo)
 
 bool GameBoard::makeMove(int indexFrom, int indexTo)
 {
-    bool switchFound = false;
-
     switchTiles(indexFrom, indexTo);
 
     generateMatches();
 
-//    while (generationCheck()) {
-//        removeMarkedTiles();
-//        addNewTiles();
-//        m_markedTiles.clear();
-//        switchFound = true;
-//    }
+    if (matchFound()) {
+        return true;
+    }
+    else {
+        emit wrongMove(indexFrom, indexTo);
+        switchTiles(indexTo, indexFrom);
 
-//    if (!switchFound) {
-//        switchTiles(indexTo, indexFrom);
-
-//        return false;
-//    }
+        return false;
+    }
 
     return true;
 }
@@ -219,13 +222,10 @@ QVariant GameBoard::data(const QModelIndex &index, int role) const
 
 void GameBoard::shuffle()
 {
-//    do {
-//        generateBoard();
-//    } while (generationCheck());
-
-    generateBoard();
-
-    generateMatches();
+    do {
+        generateBoard();
+        generateMatches();
+    } while (matchFound());
 }
 
 bool GameBoard::isAdjacent(const Position f, const Position s)
@@ -285,21 +285,33 @@ int GameBoard::setCellColumns(int rowIndex, int columntIndex, int initialValueOf
 
 void GameBoard::generateMatches()
 {
-    for (int i = 0; i < m_board.size(); ++i) {
+    for (size_t i = 0; i < m_boardHeight; ++i) {
         setCellRows(i, 0, 1);
     }
 
-    for (const auto &el : m_matchedRows) {
-        qDebug() << el;
-    }
+//    for (const auto &el : m_matchedRows) {
+//        qDebug() << el;
+//    }
 
-    qDebug() << "-----------------------";
+//    qDebug() << "-----------------------";
 
-    for (int i = 0; i < m_board.size(); ++i) {
+    for (size_t i = 0; i < m_boardWidth; ++i) {
         setCellColumns(0, i, 1);
     }
 
-    for (const auto &el : m_matchedColumns) {
+//    for (const auto &el : m_matchedColumns) {
+//        qDebug() << el;
+//    }
+
+//    qDebug() << "-----------------------";
+
+    for (size_t y = 0; y < m_boardHeight; ++y) {
+        for (size_t x = 0; x < m_boardWidth; ++x) {
+            m_matchedTiles[y][x] = std::max(m_matchedRows[y][x], m_matchedColumns[y][x]);
+        }
+    }
+
+    for (const auto &el : m_matchedTiles) {
         qDebug() << el;
     }
 

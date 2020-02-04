@@ -27,7 +27,7 @@ public:
 
     void generateBoard();
     bool generationCheck();
-    void generateHorizontalMatchesMatrix();
+    bool matchFound();
     void removeMarkedTiles();
     void addNewTiles();
     void switchTiles(int indexFrom, int indexTo);
@@ -35,6 +35,9 @@ public:
 
     Position getRowCol(const size_t index) const;
     int getIndex(const Position position) const;
+
+signals:
+    void wrongMove(int indexFrom, int indexTo);
 
 private:
     void readJson();
@@ -54,4 +57,5 @@ private:
     std::deque<Position> m_markedTiles;
     QList<QList<int>> m_matchedRows;
     QList<QList<int>> m_matchedColumns;
+    QList<QList<int>> m_matchedTiles;
 };

@@ -36,7 +36,7 @@ Window {
 
         Text {
             anchors.centerIn: parent
-            text: "Shuffle"
+            text: "Reset"
         }
 
         MouseArea {
