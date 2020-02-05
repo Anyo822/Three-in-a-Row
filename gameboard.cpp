@@ -82,6 +82,19 @@ bool GameBoard::generationCheck()
     return false;
 }
 
+bool GameBoard::matchCheck()
+{
+    generateMatches();
+
+    if (matchFound()) {
+        getMarkedTiles();
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 bool GameBoard::matchFound()
 {
     for (auto &list : m_matchedTiles) {
@@ -93,6 +106,19 @@ bool GameBoard::matchFound()
     return false;
 }
 
+void GameBoard::getMarkedTiles()
+{
+    m_markedTiles.clear();
+
+    for (int y = 0; y < m_matchedTiles.size(); ++y) {
+        for (int x = 0; x < m_matchedTiles[y].size(); ++x) {
+            if (m_matchedTiles[y][x] >= 3) {
+                m_markedTiles.push_front(Position(y, x));
+            }
+        }
+    }
+}
+
 void GameBoard::removeMarkedTiles()
 {
     for (auto &tile : m_markedTiles) {
@@ -100,10 +126,14 @@ void GameBoard::removeMarkedTiles()
         m_board[tile.first].removeAt(tile.second);
         endRemoveRows();
     }
+
+    addNewTiles();
 }
 
 void GameBoard::addNewTiles()
 {
+    std::reverse(m_markedTiles.begin(), m_markedTiles.end());
+
     for (auto &tile : m_markedTiles) {
         beginInsertRows(QModelIndex(), getIndex(Position(tile.first, 0)), getIndex(Position(tile.first, 0)));
         m_board[tile.first].push_front(getRandomColor());
@@ -142,6 +172,7 @@ bool GameBoard::makeMove(int indexFrom, int indexTo)
     generateMatches();
 
     if (matchFound()) {
+        getMarkedTiles();
         return true;
     }
     else {

@@ -27,10 +27,12 @@ public:
 
     void generateBoard();
     bool generationCheck();
+    Q_INVOKABLE bool matchCheck();
     bool matchFound();
-    void removeMarkedTiles();
-    void addNewTiles();
-    void switchTiles(int indexFrom, int indexTo);
+    void getMarkedTiles();
+    Q_INVOKABLE void removeMarkedTiles();
+    Q_INVOKABLE void addNewTiles();
+    Q_INVOKABLE void switchTiles(int indexFrom, int indexTo);
     Q_INVOKABLE bool makeMove(int indexFrom, int indexTo);
 
     Position getRowCol(const size_t index) const;

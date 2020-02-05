@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.14
 import ThreeInARow 1.0
 
 GridView {
@@ -11,8 +11,8 @@ GridView {
     interactive: false
 
     currentIndex: -1
-    property int animationDuration: 2000
-    property int appearanceAnimationDuration: 750
+    property int animationDuration: 1500
+    property int appearanceAnimationDuration: 700
 
     model: GameBoardModel {} //run animation on signal
 
@@ -50,20 +50,61 @@ GridView {
         }
     }
 
+
+    Connections {
+        target: gridView.model
+
+        onWrongMove: {
+            var itemFrom = gridView.itemAtIndex(indexFrom);
+            var itemTo = gridView.itemAtIndex(indexTo);
+
+            wrongMoveAnimation.targets = [itemFrom, itemTo];
+            wrongMoveAnimation.start();
+        }
+    }
+
+    NumberAnimation {
+        id: wrongMoveAnimation
+
+        properties: "scale"
+        to: 0.1
+        duration: 1500
+    }
+
     move: Transition {
-        NumberAnimation { properties: "y,x"; duration: animationDuration}
+        NumberAnimation {
+            properties: "y,x";
+            duration: animationDuration
+        }
+        onRunningChanged: {
+            if (!running) {
+                gridView.model.removeMarkedTiles();
+            }
+        }
     }
     add: Transition {
-        NumberAnimation { property: "opacity"; from: 0; to: 1; duration: appearanceAnimationDuration}
-        NumberAnimation { property: "scale"; from: 0; to: 1; duration: appearanceAnimationDuration}
-        NumberAnimation { properties: "y"; duration: animationDuration}
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: appearanceAnimationDuration}
+            NumberAnimation { property: "scale"; from: 0; to: 1; duration: appearanceAnimationDuration}
+            NumberAnimation { properties: "y"; from: -200; duration: animationDuration}
+        }
+        onRunningChanged: {
+            if (!running) {
+                if (gridView.model.matchCheck()) {
+                    gridView.model.removeMarkedTiles();
+                }
+            }
+        }
     }
     remove: Transition {
         NumberAnimation { property: "opacity"; from: 1; to: 0; duration: appearanceAnimationDuration}
         NumberAnimation { property: "scale"; from: 1; to: 0; duration: appearanceAnimationDuration}
     }
     displaced: Transition {
-        NumberAnimation { properties: "y,x"; duration: animationDuration}
+        NumberAnimation {
+            properties: "y,x";
+            duration: animationDuration
+        }
     }
 
     //check transition on comletion animation call
