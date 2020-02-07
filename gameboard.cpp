@@ -121,6 +121,9 @@ void GameBoard::getMarkedTiles()
 
 void GameBoard::removeMarkedTiles()
 {
+    m_score += m_markedTiles.size() * 50;
+    emit scoreChanged();
+
     for (auto &tile : m_markedTiles) {
         beginRemoveRows(QModelIndex(), getIndex(tile), getIndex(tile));
         m_board[tile.first].removeAt(tile.second);
@@ -172,6 +175,8 @@ bool GameBoard::makeMove(int indexFrom, int indexTo)
     generateMatches();
 
     if (matchFound()) {
+        m_moves += 1;
+        emit movesChanged();
         getMarkedTiles();
         return true;
     }
@@ -253,6 +258,11 @@ QVariant GameBoard::data(const QModelIndex &index, int role) const
 
 void GameBoard::shuffle()
 {
+    m_score = 0;
+    m_moves = 0;
+    emit scoreChanged();
+    emit movesChanged();
+
     do {
         generateBoard();
         generateMatches();
@@ -347,6 +357,26 @@ void GameBoard::generateMatches()
     }
 
     qDebug() << "-----------------------";
+}
+
+size_t GameBoard::moves() const
+{
+    return m_moves;
+}
+
+size_t GameBoard::score() const
+{
+    return m_score;
+}
+
+size_t GameBoard::boardHeight() const
+{
+    return m_boardHeight;
+}
+
+size_t GameBoard::boardWidth() const
+{
+    return m_boardWidth;
 }
 
 

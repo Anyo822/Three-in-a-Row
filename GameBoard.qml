@@ -4,8 +4,8 @@ import ThreeInARow 1.0
 GridView {
     id: gridView
 
-    cellHeight: height / 4
-    cellWidth: width / 4
+    cellHeight: height / model.boardHeight
+    cellWidth: width / model.boardWidth
 
     flow: GridView.FlowTopToBottom
     interactive: false
@@ -13,6 +13,8 @@ GridView {
     currentIndex: -1
     property int animationDuration: 1500
     property int appearanceAnimationDuration: 700
+    property var itemFrom
+    property var itemTo
 
     model: GameBoardModel {} //run animation on signal
 
@@ -50,25 +52,35 @@ GridView {
         }
     }
 
-
     Connections {
         target: gridView.model
 
         onWrongMove: {
-            var itemFrom = gridView.itemAtIndex(indexFrom);
-            var itemTo = gridView.itemAtIndex(indexTo);
+            itemFrom = gridView.itemAtIndex(indexFrom);
+            itemTo = gridView.itemAtIndex(indexTo);
 
-            wrongMoveAnimation.targets = [itemFrom, itemTo];
             wrongMoveAnimation.start();
         }
     }
 
-    NumberAnimation {
+    SequentialAnimation {
         id: wrongMoveAnimation
+        loops: 2
 
-        properties: "scale"
-        to: 0.1
-        duration: 1500
+        NumberAnimation {
+            targets: [itemFrom, itemTo]
+            property: "scale"
+            to: 0.7
+            easing.type: "InOutQuad"
+            easing.overshoot: 100
+        }
+        NumberAnimation {
+            targets: [itemFrom, itemTo]
+            property: "scale"
+            to: 1
+            easing.type: "InOutQuad"
+            easing.overshoot: 100
+        }
     }
 
     move: Transition {

@@ -11,6 +11,10 @@
 class GameBoard : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(int boardWidth READ boardWidth CONSTANT)
+    Q_PROPERTY(int boardHeight READ boardHeight CONSTANT)
+    Q_PROPERTY(int score READ score NOTIFY scoreChanged)
+    Q_PROPERTY(int moves READ moves NOTIFY movesChanged)
 
 public:
     using Position = std::pair<size_t, size_t>;
@@ -38,8 +42,15 @@ public:
     Position getRowCol(const size_t index) const;
     int getIndex(const Position position) const;
 
+    size_t boardWidth() const;
+    size_t boardHeight() const;
+    size_t score() const;
+    size_t moves() const;
+
 signals:
     void wrongMove(int indexFrom, int indexTo);
+    void scoreChanged();
+    void movesChanged();
 
 private:
     void readJson();
@@ -52,8 +63,10 @@ private:
 
     size_t m_boardWidth;
     size_t m_boardHeight;
-    std::mt19937 generator;
+    size_t m_score = 0;
+    size_t m_moves = 0;
 
+    std::mt19937 generator;
     QList<QList<QColor>> m_board;
     std::deque<QColor> m_colors;
     std::deque<Position> m_markedTiles;

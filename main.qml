@@ -44,4 +44,37 @@ Window {
             onClicked: gameBoard.model.shuffle()
         }
     }
+
+    Rectangle {
+        id: scoreText
+
+        width: root.width / 4
+        height: root.height / 10
+
+        color: "green"
+        radius: 10
+
+        anchors.right: parent.right
+        anchors.rightMargin: root.width / 8
+        anchors.top: parent.top
+        anchors.topMargin: root.height / 25
+
+        Text {
+            anchors.top: parent.top
+            anchors.topMargin: parent.height / 5
+            anchors.right: parent.right
+            anchors.rightMargin: parent.width / 4
+
+            text: "Score: " + gameBoard.model.score
+        }
+
+        Text {
+            anchors.top: parent.top
+            anchors.topMargin: parent.height * 3 / 5
+            anchors.right: parent.right
+            anchors.rightMargin: parent.width / 4
+
+            text: "Moves: " + gameBoard.model.moves
+        }
+    }
 }
