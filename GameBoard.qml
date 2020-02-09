@@ -1,5 +1,6 @@
 import QtQuick 2.14
 import ThreeInARow 1.0
+import QtQuick.Dialogs 1.1
 
 GridView {
     id: gridView
@@ -105,9 +106,13 @@ GridView {
                 if (gridView.model.matchCheck()) {
                     gridView.model.removeMarkedTiles();
                 }
+                if (gridView.model.gameOverCheck()) {
+                    messageDialog.open();
+                }
             }
         }
     }
+
     remove: Transition {
         NumberAnimation { property: "opacity"; from: 1; to: 0; duration: appearanceAnimationDuration}
         NumberAnimation { property: "scale"; from: 1; to: 0; duration: appearanceAnimationDuration}
@@ -119,6 +124,16 @@ GridView {
         }
     }
 
+    MessageDialog {
+        id: messageDialog
+        title: "May I have your attention please"
+        text: "Game Over"
+        onAccepted: {
+            console.log("And of course you could only agree.")
+            close();
+            Qt.quit();
+        }
+    }
     //check transition on comletion animation call
 }
 

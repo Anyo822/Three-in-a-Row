@@ -2,6 +2,7 @@
 #include <QAbstractListModel>
 #include <deque>
 #include <vector>
+#include <random>
 #include <QColor>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -30,8 +31,9 @@ public:
     Q_INVOKABLE void shuffle();
 
     void generateBoard();
-    bool generationCheck();
     Q_INVOKABLE bool matchCheck();
+    Q_INVOKABLE bool gameOverCheck();
+    bool gameOver();
     bool matchFound();
     void getMarkedTiles();
     Q_INVOKABLE void removeMarkedTiles();
@@ -56,18 +58,19 @@ private:
     void readJson();
     QColor getRandomColor();
     bool isAdjacent(const Position f, const Position s);
-    int setCellColumns(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks);
-    int setCellRows(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks);
+    int setCellColumns(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks, QList<QList<QColor>> &board);
+    int setCellRows(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks, QList<QList<QColor>> &board);
 
-    void generateMatches();
+    void generateMatches(QList<QList<QColor>> &board);
 
     size_t m_boardWidth;
     size_t m_boardHeight;
     size_t m_score = 0;
-    size_t m_moves = 0;
+    size_t m_moves = 0; 
 
     std::mt19937 generator;
     QList<QList<QColor>> m_board;
+    QList<QList<QColor>> m_gameOverBoard;
     std::deque<QColor> m_colors;
     std::deque<Position> m_markedTiles;
     QList<QList<int>> m_matchedRows;

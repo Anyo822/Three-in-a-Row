@@ -1,5 +1,4 @@
 #include "gameboard.h"
-#include <random>
 #include <iostream>
 #include <QDebug>
 
@@ -39,55 +38,71 @@ void GameBoard::generateBoard()
     endResetModel();
 }
 
-bool GameBoard::generationCheck()
-{
-    for (int y = 0; y < m_board.size(); ++y) {
-        for (int x = 0; x < m_board[y].size(); ++x) {
-            size_t offset = 1;
-            m_markedTiles.push_back(Position(y, x));
-
-            while (//y < m_board.size() && x < m_board[y].size()
-                   offset + x < m_board[y].size() && m_board[y][x] == m_board[y][x + offset]) {
-                m_markedTiles.push_back(Position(y, x + offset));
-                offset++;
-            }
-            if (offset >= 3) { //&& ((offset + x) >= m_board[y].size() || m_board[y][x] != m_board[y][x + offset])
-//                for(const auto &element : m_markedTiles) {
-//                    m_matchesMatrix[element.first][element.second] = offset;
-//                }
-
-                return true;
-            }
-            m_markedTiles.clear();
-
-            offset = 1;
-            m_markedTiles.push_back(Position(y, x));
-
-            while (//y < m_board.size() && x < m_board[y].size()
-                   offset + y < m_board.size() && x < m_board[y + offset].size()
-                   && m_board[y][x] == m_board[y + offset][x]) {
-                m_markedTiles.push_back(Position(y + offset, x));
-                offset++;
-            }
-            if (offset >= 3) { //&& ((offset + y) >= m_board.size() || x >= m_board[offset + y].size() || m_board[y][x] != m_board[y + offset][x])
-//                for(const auto &element : m_markedTiles) {
-//                    m_matchesMatrix[element.first][element.second] = offset;
-//                }
-
-                return true;
-            }
-            m_markedTiles.clear();
-        }
-    }
-    return false;
-}
-
 bool GameBoard::matchCheck()
 {
-    generateMatches();
+    generateMatches(m_board);
 
     if (matchFound()) {
         getMarkedTiles();
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool GameBoard::gameOverCheck()
+{
+    m_gameOverBoard = m_board;
+    for (size_t y = 0; y < m_boardHeight; ++y) {
+        for (size_t x = 0; x < m_boardWidth; ++x) {
+            if (x < m_boardWidth - 1) {
+                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x + 1]);
+                if (gameOver()) {
+                    return false;
+                }
+                else {
+                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x + 1]);
+                }
+            }
+            if (x > 0) {
+                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x - 1]);
+                if (gameOver()) {
+                    return false;
+                }
+                else {
+                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x - 1]);
+                }
+            }
+
+            if (y < m_boardHeight - 1) {
+                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y + 1][x]);
+                if (gameOver()) {
+                    return false;
+                }
+                else {
+                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y + 1][x]);
+                }
+            }
+            if (y > 0) {
+                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y - 1][x]);
+                if (gameOver()) {
+                    return false;
+                }
+                else {
+                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y - 1][x]);
+                }
+            }
+        }
+    }
+    return true;
+}
+
+bool GameBoard::gameOver()
+{
+    generateMatches(m_gameOverBoard);
+
+    if (matchFound()) {
         return true;
     }
     else {
@@ -172,7 +187,7 @@ bool GameBoard::makeMove(int indexFrom, int indexTo)
 {
     switchTiles(indexFrom, indexTo);
 
-    generateMatches();
+    generateMatches(m_board);
 
     if (matchFound()) {
         m_moves += 1;
@@ -265,8 +280,12 @@ void GameBoard::shuffle()
 
     do {
         generateBoard();
-        generateMatches();
+        generateMatches(m_board);
     } while (matchFound());
+
+    if (gameOverCheck()) {
+        shuffle();
+    }
 }
 
 bool GameBoard::isAdjacent(const Position f, const Position s)
@@ -282,7 +301,7 @@ bool GameBoard::isAdjacent(const Position f, const Position s)
     return calcDistance(f.first, s.first) + calcDistance(f.second, s.second) == 1;
 }
 
-int GameBoard::setCellRows(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks)
+int GameBoard::setCellRows(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks, QList<QList<QColor>> &board)
 {
     if (columntIndex >= m_board[rowIndex].size() - 1) {
         m_matchedRows[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
@@ -290,20 +309,20 @@ int GameBoard::setCellRows(int rowIndex, int columntIndex, int initialValueOfMat
         return m_matchedRows[rowIndex][columntIndex];
     }
 
-    bool isNextCellTheSame = m_board[rowIndex][columntIndex] == m_board[rowIndex][columntIndex + 1];
+    bool isNextCellTheSame = board[rowIndex][columntIndex] == board[rowIndex][columntIndex + 1];
 
     if (isNextCellTheSame) {
-        m_matchedRows[rowIndex][columntIndex] = setCellRows(rowIndex, columntIndex + 1, initialValueOfMathcedBlocks + 1);
+        m_matchedRows[rowIndex][columntIndex] = setCellRows(rowIndex, columntIndex + 1, initialValueOfMathcedBlocks + 1, board);
     }
     else {
-        setCellRows(rowIndex, columntIndex + 1, 1);
+        setCellRows(rowIndex, columntIndex + 1, 1, board);
         m_matchedRows[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
     }
 
     return m_matchedRows[rowIndex][columntIndex];
 }
 
-int GameBoard::setCellColumns(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks)
+int GameBoard::setCellColumns(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks, QList<QList<QColor>> &board)
 {
     if (rowIndex >= m_board.size() - 1) {
         m_matchedColumns[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
@@ -311,23 +330,23 @@ int GameBoard::setCellColumns(int rowIndex, int columntIndex, int initialValueOf
         return m_matchedColumns[rowIndex][columntIndex];
     }
 
-    bool isNextCellTheSame = m_board[rowIndex][columntIndex] == m_board[rowIndex + 1][columntIndex];
+    bool isNextCellTheSame = board[rowIndex][columntIndex] == board[rowIndex + 1][columntIndex];
 
     if (isNextCellTheSame) {
-        m_matchedColumns[rowIndex][columntIndex] = setCellColumns(rowIndex + 1, columntIndex, initialValueOfMathcedBlocks + 1);
+        m_matchedColumns[rowIndex][columntIndex] = setCellColumns(rowIndex + 1, columntIndex, initialValueOfMathcedBlocks + 1, board);
     }
     else {
-        setCellColumns(rowIndex + 1, columntIndex, 1);
+        setCellColumns(rowIndex + 1, columntIndex, 1, board);
         m_matchedColumns[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
     }
 
     return m_matchedColumns[rowIndex][columntIndex];
 }
 
-void GameBoard::generateMatches()
+void GameBoard::generateMatches(QList<QList<QColor>> &board)
 {
     for (size_t i = 0; i < m_boardHeight; ++i) {
-        setCellRows(i, 0, 1);
+        setCellRows(i, 0, 1, board);
     }
 
 //    for (const auto &el : m_matchedRows) {
@@ -337,7 +356,7 @@ void GameBoard::generateMatches()
 //    qDebug() << "-----------------------";
 
     for (size_t i = 0; i < m_boardWidth; ++i) {
-        setCellColumns(0, i, 1);
+        setCellColumns(0, i, 1, board);
     }
 
 //    for (const auto &el : m_matchedColumns) {
