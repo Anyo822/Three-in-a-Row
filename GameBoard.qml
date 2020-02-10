@@ -17,7 +17,7 @@ GridView {
     property var itemFrom
     property var itemTo
 
-    model: GameBoardModel {} //run animation on signal
+    model: GameBoardModel {}
 
     delegate: Item {
         width: gridView.cellWidth
@@ -134,6 +134,5 @@ GridView {
             Qt.quit();
         }
     }
-    //check transition on comletion animation call
 }
 

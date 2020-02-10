@@ -2,7 +2,7 @@
 #include <iostream>
 #include <QDebug>
 
-GameBoard::GameBoard(QObject *parent, size_t board_dimension)
+GameBoard::GameBoard(QObject *parent)
     : QAbstractListModel (parent)
     , generator(std::chrono::system_clock::now().time_since_epoch().count())
 {
@@ -51,6 +51,18 @@ bool GameBoard::matchCheck()
     }
 }
 
+bool GameBoard::matchCheck(QList<QList<QColor> > &board)
+{
+    generateMatches(board);
+
+    if (matchFound()) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 bool GameBoard::gameOverCheck()
 {
     m_gameOverBoard = m_board;
@@ -58,7 +70,7 @@ bool GameBoard::gameOverCheck()
         for (size_t x = 0; x < m_boardWidth; ++x) {
             if (x < m_boardWidth - 1) {
                 std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x + 1]);
-                if (gameOver()) {
+                if (matchCheck(m_gameOverBoard)) {
                     return false;
                 }
                 else {
@@ -67,7 +79,7 @@ bool GameBoard::gameOverCheck()
             }
             if (x > 0) {
                 std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x - 1]);
-                if (gameOver()) {
+                if (matchCheck(m_gameOverBoard)) {
                     return false;
                 }
                 else {
@@ -77,7 +89,7 @@ bool GameBoard::gameOverCheck()
 
             if (y < m_boardHeight - 1) {
                 std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y + 1][x]);
-                if (gameOver()) {
+                if (matchCheck(m_gameOverBoard)) {
                     return false;
                 }
                 else {
@@ -86,7 +98,7 @@ bool GameBoard::gameOverCheck()
             }
             if (y > 0) {
                 std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y - 1][x]);
-                if (gameOver()) {
+                if (matchCheck(m_gameOverBoard)) {
                     return false;
                 }
                 else {
@@ -96,18 +108,6 @@ bool GameBoard::gameOverCheck()
         }
     }
     return true;
-}
-
-bool GameBoard::gameOver()
-{
-    generateMatches(m_gameOverBoard);
-
-    if (matchFound()) {
-        return true;
-    }
-    else {
-        return false;
-    }
 }
 
 bool GameBoard::matchFound()
@@ -136,7 +136,7 @@ void GameBoard::getMarkedTiles()
 
 void GameBoard::removeMarkedTiles()
 {
-    m_score += m_markedTiles.size() * 50;
+    m_score += m_markedTiles.size() * baseScorePerBall;;
     emit scoreChanged();
 
     for (auto &tile : m_markedTiles) {
@@ -224,7 +224,7 @@ int GameBoard::getIndex(const GameBoard::Position position) const
 void GameBoard::readJson()
 {
     QFile inFile(":/settings.json");
-    inFile.open(QIODevice::ReadOnly|QIODevice::Text);
+    inFile.open(QIODevice::ReadOnly | QIODevice::Text);
     QByteArray data = inFile.readAll();
     inFile.close();
 
@@ -348,34 +348,15 @@ void GameBoard::generateMatches(QList<QList<QColor>> &board)
     for (size_t i = 0; i < m_boardHeight; ++i) {
         setCellRows(i, 0, 1, board);
     }
-
-//    for (const auto &el : m_matchedRows) {
-//        qDebug() << el;
-//    }
-
-//    qDebug() << "-----------------------";
-
     for (size_t i = 0; i < m_boardWidth; ++i) {
         setCellColumns(0, i, 1, board);
     }
-
-//    for (const auto &el : m_matchedColumns) {
-//        qDebug() << el;
-//    }
-
-//    qDebug() << "-----------------------";
 
     for (size_t y = 0; y < m_boardHeight; ++y) {
         for (size_t x = 0; x < m_boardWidth; ++x) {
             m_matchedTiles[y][x] = std::max(m_matchedRows[y][x], m_matchedColumns[y][x]);
         }
     }
-
-    for (const auto &el : m_matchedTiles) {
-        qDebug() << el;
-    }
-
-    qDebug() << "-----------------------";
 }
 
 size_t GameBoard::moves() const
@@ -397,13 +378,3 @@ size_t GameBoard::boardWidth() const
 {
     return m_boardWidth;
 }
-
-
-
-
-
-
-
-
-
-

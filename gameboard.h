@@ -18,22 +18,19 @@ class GameBoard : public QAbstractListModel
     Q_PROPERTY(int moves READ moves NOTIFY movesChanged)
 
 public:
-    using Position = std::pair<size_t, size_t>;
-    using IteratorPosition = std::pair<std::deque<std::deque<QColor>>::iterator, std::deque<QColor>::iterator>;
+    using Position = std::pair<int, int>;
+    using IteratorPosition = std::pair<std::deque<std::deque<QColor>>::iterator, std::deque<QColor>::iterator>;\
 
-    static constexpr size_t defaultPuzzleDimension = 8;
-
-    GameBoard(QObject *parent = nullptr, size_t board_dimension = defaultPuzzleDimension);
+    GameBoard(QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex {}) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DecorationRole) const override;
 
     Q_INVOKABLE void shuffle();
-
     void generateBoard();
     Q_INVOKABLE bool matchCheck();
+    bool matchCheck(QList<QList<QColor>> &board);
     Q_INVOKABLE bool gameOverCheck();
-    bool gameOver();
     bool matchFound();
     void getMarkedTiles();
     Q_INVOKABLE void removeMarkedTiles();
@@ -67,6 +64,7 @@ private:
     size_t m_boardHeight;
     size_t m_score = 0;
     size_t m_moves = 0; 
+    size_t const baseScorePerBall = 50;
 
     std::mt19937 generator;
     QList<QList<QColor>> m_board;
