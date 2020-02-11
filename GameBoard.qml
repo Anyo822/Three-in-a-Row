@@ -127,12 +127,10 @@ GridView {
     MessageDialog {
         id: messageDialog
         title: "May I have your attention please"
-        text: "Game Over"
-        onAccepted: {
-            console.log("And of course you could only agree.")
-            close();
-            Qt.quit();
-        }
+        text: "Game Over, restart?"
+        standardButtons: StandardButton.Yes | StandardButton.No
+        onYes: gridView.model.shuffle();
+        onNo: Qt.quit();
     }
 }
 
