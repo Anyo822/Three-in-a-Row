@@ -30,7 +30,7 @@ GridView {
             height: width
             radius: width * 0.5
 
-            color: index == currentIndex ? Qt.darker(decoration) : decoration
+            color: delegate.index === currentIndex ? Qt.darker(decoration) : decoration
             border.color: "black"
             border.width: 1
 

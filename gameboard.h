@@ -75,3 +75,5 @@ private:
     QList<QList<int>> m_matchedColumns;
     QList<QList<int>> m_matchedTiles;
 };
+
+//"red","green","blue","violet","yellow"

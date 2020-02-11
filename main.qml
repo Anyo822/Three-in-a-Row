@@ -5,8 +5,8 @@ Window {
     id: root
 
     visible: true
-    width: 480
-    height: 480
+    width: 980
+    height: 980
 
     Rectangle {
         anchors.fill: parent
