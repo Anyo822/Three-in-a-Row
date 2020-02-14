@@ -1,8 +1,11 @@
 #include "gameboard.h"
-#include <iostream>
 #include <QDebug>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QFile>
 
-GameBoard::GameBoard(QObject *parent)
+GameBoard::GameBoard(QObject * parent)
     : QAbstractListModel (parent)
     , generator(std::chrono::system_clock::now().time_since_epoch().count())
 {
@@ -29,8 +32,8 @@ void GameBoard::generateBoard()
 {
     beginResetModel();
 
-    for (auto &yElement : m_board) {
-        for (auto &xElement : yElement) {
+    for (auto & yElement : m_board) {
+        for (auto & xElement : yElement) {
             xElement = getRandomColor();
         }
     }
@@ -51,16 +54,11 @@ bool GameBoard::matchCheck()
     }
 }
 
-bool GameBoard::matchCheck(QList<QList<QColor> > &board)
+bool GameBoard::matchCheck(QList<QList<QColor> > & board)
 {
     generateMatches(board);
 
-    if (matchFound()) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return matchFound();
 }
 
 bool GameBoard::gameOverCheck()
@@ -112,7 +110,7 @@ bool GameBoard::gameOverCheck()
 
 bool GameBoard::matchFound()
 {
-    for (auto &list : m_matchedTiles) {
+    for (auto & list : m_matchedTiles) {
         if (std::any_of(list.begin(), list.end(), [](int value) { return value >= 3; })) {
             return true;
         }
@@ -139,7 +137,7 @@ void GameBoard::removeMarkedTiles()
     m_score += m_markedTiles.size() * baseScorePerBall;;
     emit scoreChanged();
 
-    for (auto &tile : m_markedTiles) {
+    for (auto & tile : m_markedTiles) {
         beginRemoveRows(QModelIndex(), getIndex(tile), getIndex(tile));
         m_board[tile.first].removeAt(tile.second);
         endRemoveRows();
@@ -149,15 +147,15 @@ void GameBoard::removeMarkedTiles()
 }
 
 void GameBoard::addNewTiles()
-{
-    std::reverse(m_markedTiles.begin(), m_markedTiles.end());
-
-    for (auto &tile : m_markedTiles) {
-        beginInsertRows(QModelIndex(), getIndex(Position(tile.first, 0)), getIndex(Position(tile.first, 0)));
-        m_board[tile.first].push_front(getRandomColor());
+{    
+    for (auto tile = m_markedTiles.rbegin() ; tile != m_markedTiles.rend(); ++tile) {
+        beginInsertRows(QModelIndex(), getIndex(Position(tile->first, 0)), getIndex(Position(tile->first, 0)));
+        m_board[tile->first].push_front(getRandomColor());
         endInsertRows();
     }
 }
+//search for sequences where tile->first == each other until not OR tile->second
+//then erase such sequences
 
 void GameBoard::switchTiles(int indexFrom, int indexTo)
 {
@@ -185,29 +183,37 @@ void GameBoard::switchTiles(int indexFrom, int indexTo)
 
 bool GameBoard::makeMove(int indexFrom, int indexTo)
 {
-    switchTiles(indexFrom, indexTo);
+    Position positionFrom = getRowCol(indexFrom);
+    Position positionTo = getRowCol(indexTo);
 
-    generateMatches(m_board);
+    if (!isAdjacent(positionFrom, positionTo)) {
+        return false;
+    }
+
+    m_moveBoard = m_board;
+    std::swap(m_moveBoard[positionFrom.first][positionFrom.second], m_moveBoard[positionTo.first][positionTo.second]);
+
+    generateMatches(m_moveBoard);
 
     if (matchFound()) {
         m_moves += 1;
         emit movesChanged();
+
         getMarkedTiles();
+        switchTiles(indexFrom, indexTo);
+
         return true;
     }
     else {
         emit wrongMove(indexFrom, indexTo);
-        switchTiles(indexTo, indexFrom);
 
         return false;
     }
-
-    return true;
 }
 
 GameBoard::Position GameBoard::getRowCol(size_t index) const
 {
-    Q_ASSERT(m_boardHeight > 0 && m_boardWidth > 0);
+    Q_ASSERT(m_boardHeight > 0 &&  m_boardWidth > 0);
     size_t row = index / m_boardHeight;
     size_t column = index % m_boardWidth;
 
@@ -229,18 +235,18 @@ void GameBoard::readJson()
     inFile.close();
 
     QJsonParseError errorPtr;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &errorPtr);
+    QJsonDocument doc = QJsonDocument::fromJson(data, & errorPtr);
     if (doc.isNull()) {
         qDebug() << "Parse failed";
     }
     QJsonObject rootObj = doc.object();
 
-    m_boardHeight = rootObj.value("height").toInt();
     m_boardWidth = rootObj.value("width").toInt();
+    m_boardHeight = rootObj.value("height").toInt();
 
     QJsonArray ptsArray = rootObj.value("colors").toArray();
 
-    for (const auto &element : ptsArray) {
+    for (const auto & element : ptsArray) {
         m_colors.emplace_back(element.toString());
     }
 }
@@ -250,13 +256,13 @@ QColor GameBoard::getRandomColor()
     return m_colors[std::uniform_int_distribution<int>(0, m_colors.size() - 1)(generator)];
 }
 
-int GameBoard::rowCount(const QModelIndex &parent) const
+int GameBoard::rowCount(const QModelIndex & parent) const
 {
     Q_UNUSED(parent)
     return m_board.size() * m_board[0].size();
 }
 
-QVariant GameBoard::data(const QModelIndex &index, int role) const
+QVariant GameBoard::data(const QModelIndex & index, int role) const
 {
     if (!index.isValid() || role != Qt::DecorationRole) {
         return {};
@@ -264,7 +270,7 @@ QVariant GameBoard::data(const QModelIndex &index, int role) const
 
     Position indexPosition = getRowCol(index.row());
 
-    if (indexPosition.first < m_board.size() && indexPosition.second < m_board[indexPosition.first].size()) {
+    if (indexPosition.first < m_board.size() &&  indexPosition.second < m_board[indexPosition.first].size()) {
         return QVariant::fromValue(m_board[indexPosition.first][indexPosition.second]);
     }
 
@@ -283,9 +289,10 @@ void GameBoard::shuffle()
         generateMatches(m_board);
     } while (matchFound());
 
-    if (gameOverCheck()) {
-        shuffle();
-    }
+//    if (gameOverCheck()) {
+//        shuffle();
+//    }
+//    generateMatches(m_board);
 }
 
 bool GameBoard::isAdjacent(const Position f, const Position s)
@@ -301,7 +308,7 @@ bool GameBoard::isAdjacent(const Position f, const Position s)
     return calcDistance(f.first, s.first) + calcDistance(f.second, s.second) == 1;
 }
 
-int GameBoard::setCellRows(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks, QList<QList<QColor>> &board)
+int GameBoard::setCellRows(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks, QList<QList<QColor>> &  board)
 {
     if (columntIndex >= m_board[rowIndex].size() - 1) {
         m_matchedRows[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
@@ -322,7 +329,7 @@ int GameBoard::setCellRows(int rowIndex, int columntIndex, int initialValueOfMat
     return m_matchedRows[rowIndex][columntIndex];
 }
 
-int GameBoard::setCellColumns(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks, QList<QList<QColor>> &board)
+int GameBoard::setCellColumns(int rowIndex, int columntIndex, int initialValueOfMathcedBlocks, QList<QList<QColor>> &  board)
 {
     if (rowIndex >= m_board.size() - 1) {
         m_matchedColumns[rowIndex][columntIndex] = initialValueOfMathcedBlocks;
@@ -343,20 +350,39 @@ int GameBoard::setCellColumns(int rowIndex, int columntIndex, int initialValueOf
     return m_matchedColumns[rowIndex][columntIndex];
 }
 
-void GameBoard::generateMatches(QList<QList<QColor>> &board)
+void GameBoard::generateMatches(QList<QList<QColor>> &  board)
 {
     for (size_t i = 0; i < m_boardHeight; ++i) {
         setCellRows(i, 0, 1, board);
     }
+
+//    for (const auto & el : m_matchedRows) {
+//        qDebug() << el;
+//    }
+
+//    qDebug() << "-----------ROWS----------";
+
     for (size_t i = 0; i < m_boardWidth; ++i) {
         setCellColumns(0, i, 1, board);
     }
+
+//    for (const auto & el : m_matchedColumns) {
+//        qDebug() << el;
+//    }
+
+//    qDebug() << "-----------COLUMNS----------";
 
     for (size_t y = 0; y < m_boardHeight; ++y) {
         for (size_t x = 0; x < m_boardWidth; ++x) {
             m_matchedTiles[y][x] = std::max(m_matchedRows[y][x], m_matchedColumns[y][x]);
         }
     }
+
+    for (const auto & el : m_matchedTiles) {
+        qDebug() << el;
+    }
+
+    qDebug() << "----------FULL-----------";
 }
 
 size_t GameBoard::moves() const

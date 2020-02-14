@@ -30,7 +30,7 @@ GridView {
             height: width
             radius: width * 0.5
 
-            color: delegate.index === currentIndex ? Qt.darker(decoration) : decoration
+            color: index === currentIndex ? Qt.darker(decoration) : decoration
             border.color: "black"
             border.width: 1
 
@@ -41,11 +41,9 @@ GridView {
                     if (currentIndex != -1 && currentIndex != index) {
                         gridView.model.makeMove(currentIndex, index);
                         currentIndex = -1;
-                    }
-                    else if (currentIndex == index) {
+                    } else if (currentIndex == index) {
                         currentIndex = -1
-                    }
-                    else {
+                    } else {
                         currentIndex = index;
                     }
                 }
@@ -99,7 +97,7 @@ GridView {
         ParallelAnimation {
             NumberAnimation { property: "opacity"; from: 0; to: 1; duration: appearanceAnimationDuration}
             NumberAnimation { property: "scale"; from: 0; to: 1; duration: appearanceAnimationDuration}
-            NumberAnimation { properties: "y"; from: -200; duration: animationDuration}
+            NumberAnimation { properties: "y"; from: 0; duration: animationDuration}
         }
         onRunningChanged: {
             if (!running) {

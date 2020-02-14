@@ -1,20 +1,7 @@
 {
-    "width": 10,
-    "height": 10,
+    "width": 5,
+    "height": 5,
     "colors": [
-        "aqua", "aquamarine", "azure", "bisque", "blue", "chartreuse", "coral",
-        "cornsilk", "crimson", "cyan", "deeppink", "deepskyblue", "dimgray",
-        "dimgrey", "dodgerblue", "firebrick", "forestgreen", "fuchsia",
-        "gainsboro", "ghostwhite", "gold", "goldenrod", "green", "greenyellow",
-        "honeydew", "hotpink", "indianred", "indigo", "ivory", "khaki", "lavender",
-        "lawngreen", "lemonchiffon", "lightcoral",
-        "lime", "limegreen", "linen", "magenta", "maroon",
-        "mistyrose", "moccasin", "navajowhite", "navy",
-        "olive", "olivedrab", "orange", "orangered", "orchid",
-        "peachpuff", "pink", "plum", "purple", "red", "rosybrown", "royalblue",
-        "salmon", "sandybrown", "seagreen", "seashell", "sienna", "silver", "skyblue",
-        "slateblue", "springgreen", "steelblue", "tan",
-        "teal", "tomato", "transparent", "turquoise", "violet", "wheat",
-        "yellow", "yellowgreen"
+        "red","green","blue","violet","yellow"
     ]
 }
