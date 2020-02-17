@@ -26,7 +26,7 @@ public:
     Q_INVOKABLE void shuffle();
     Q_INVOKABLE void removeMarkedTiles();
     Q_INVOKABLE bool matchCheck();
-    Q_INVOKABLE bool gameOverCheck();
+    Q_INVOKABLE bool gameOverCheck() const;
     Q_INVOKABLE bool makeMove(int indexFrom, int indexTo);
 
     bool matchCheck(QList<QList<QColor>> & board);
@@ -69,7 +69,7 @@ private:
     QList<QList<QColor>> m_gameOverBoard;
     QList<QList<QColor>> m_moveBoard;
     QList<QColor> m_colors;
-    QList   <Position> m_markedTiles;
+    QList<Position> m_markedTiles;
     QList<QList<int>> m_matchedRows;
     QList<QList<int>> m_matchedColumns;
     QList<QList<int>> m_matchedTiles;

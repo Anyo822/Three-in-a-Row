@@ -62,50 +62,226 @@ bool GameBoard::matchCheck(QList<QList<QColor> > & board)
     return matchFound();
 }
 
-bool GameBoard::gameOverCheck()
+bool GameBoard::gameOverCheck() const
 {
-    m_gameOverBoard = m_board;
-    for (size_t y = 0; y < m_boardHeight; ++y) {
-        for (size_t x = 0; x < m_boardWidth; ++x) {
-            if (x < m_boardWidth - 1) {
-                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x + 1]);
-                if (matchCheck(m_gameOverBoard)) {
-                    return false;
-                }
-                else {
-                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x + 1]);
-                }
-            }
-            if (x > 0) {
-                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x - 1]);
-                if (matchCheck(m_gameOverBoard)) {
-                    return false;
-                }
-                else {
-                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x - 1]);
-                }
-            }
 
-            if (y < m_boardHeight - 1) {
-                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y + 1][x]);
-                if (matchCheck(m_gameOverBoard)) {
+//2x3 (vertical) check
+//    int left = 0;
+//    int right = left + 1;
+//    int top = 0;
+//    int mid = top + 1;
+//    int bottom = top + 2;
+
+    for (int top = 0, mid = top + 1, bottom = top + 2 ;bottom < (int)m_boardHeight; ++top, ++bottom, ++mid) {
+        for (int left = 0, right = left + 1;right < (int)m_boardWidth; ++left, ++right) {
+
+            if (m_board[top][left] == m_board[mid][left]) {
+                if (m_board[top][left] == m_board[bottom][right]) {
                     return false;
                 }
-                else {
-                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y + 1][x]);
-                }
             }
-            if (y > 0) {
-                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y - 1][x]);
-                if (matchCheck(m_gameOverBoard)) {
+            //XO
+            //XO
+            //OX
+            if (m_board[top][right] == m_board[mid][right]) {
+                if (m_board[top][right] == m_board[bottom][left]) {
                     return false;
                 }
-                else {
-                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y - 1][x]);
+            }
+            //OX
+            //OX
+            //XO
+            if (m_board[mid][left] == m_board[bottom][left]) {
+                if (m_board[mid][left] == m_board[top][right]) {
+                    return false;
                 }
             }
+            //OX
+            //XO
+            //XO
+            if (m_board[mid][right] == m_board[bottom][right]) {
+                if (m_board[mid][right] == m_board[top][left]) {
+                    return false;
+                }
+            }
+            //XO
+            //OX
+            //OX
+            if (m_board[top][right] == m_board[bottom][right]) {
+                if (m_board[top][right] == m_board[mid][left]) {
+                    return false;
+                }
+            }
+            //OX
+            //XO
+            //OX
+            if (m_board[top][left] == m_board[bottom][left]) {
+                if (m_board[top][left] == m_board[mid][right]) {
+                    return false;
+                }
+            }
+            //XO
+            //OX
+            //XO
         }
     }
+
+//3x2 (horizontal) check
+//    left = 0;
+//    mid = left + 1;
+//    right = left + 2;
+//    top = 0;
+//    bottom = top + 1;
+
+    for (int top = 0, bottom = top + 1 ;bottom < (int)m_boardHeight; ++top, ++bottom) {
+        for (int left = 0, mid = left + 1, right = left + 2 ;right < (int)m_boardWidth; ++left, ++right, ++mid) {
+
+            if (m_board[top][left] == m_board[top][mid]) {
+                if (m_board[top][left] == m_board[bottom][right]) {
+                    return false;
+                }
+            }
+            //XXO
+            //OOX
+            if (m_board[bottom][left] == m_board[bottom][mid]) {
+                if (m_board[bottom][left] == m_board[top][right]) {
+                    return false;
+                }
+            }
+            //OOX
+            //XXO
+            if (m_board[bottom][mid] == m_board[bottom][right]) {
+                if (m_board[bottom][mid] == m_board[top][left]) {
+                    return false;
+                }
+            }
+            //XOO
+            //OXX
+            if (m_board[top][mid] == m_board[top][right]) {
+                if (m_board[top][mid] == m_board[bottom][left]) {
+                    return false;
+                }
+            }
+            //OXX
+            //XOO
+            if (m_board[top][left] == m_board[top][right]) {
+                if (m_board[top][left] == m_board[bottom][mid]) {
+                    return false;
+                }
+            }
+            //XOX
+            //OXO
+            if (m_board[bottom][left] == m_board[bottom][right]) {
+                if (m_board[bottom][left] == m_board[top][mid]) {
+                    return false;
+                }
+            }
+            //OXO
+            //XOX
+        }
+    }
+
+//1x4 (vertical) check
+//    left = 0;
+//    top = 0;
+//    int topMid = top + 1;
+//    int botMid = top + 2;
+//    bottom = top + 3;
+
+    for (int top = 0, topMid = top + 1, botMid = top + 2, bottom = top + 3 ;bottom < (int)m_boardHeight; ++top, ++bottom, ++topMid, ++botMid) {
+        for (int left = 0 ;left < (int)m_boardWidth; ++left) {
+
+            if (m_board[top][left] == m_board[topMid][left]) {
+                if (m_board[top][left] == m_board[bottom][left]) {
+                    return false;
+                }
+            }
+            //X
+            //X
+            //O
+            //X
+            if (m_board[botMid][left] == m_board[bottom][left]) {
+                if (m_board[botMid][left] == m_board[top][left]) {
+                    return false;
+                }
+            }
+            //X
+            //O
+            //X
+            //X
+        }
+    }
+
+//1x4 (vertical) check
+//    left = 0;
+//    int leftMid = left + 1;
+//    int rightMid = left + 2;
+//    right = left + 3;
+//    top = 0;
+
+    for (int top = 0 ;top < (int)m_boardHeight; ++top) {
+        for (int left = 0, leftMid = left + 1, rightMid = left + 2, right = left + 3 ;right < (int)m_boardWidth; ++left, ++right, ++leftMid, ++rightMid) {
+
+            if (m_board[top][left] == m_board[top][leftMid]) {
+                if (m_board[top][left] == m_board[top][right]) {
+                    return false;
+                }
+            }
+            //XXOX
+            if (m_board[top][rightMid] == m_board[top][right]) {
+                if (m_board[top][rightMid] == m_board[top][left]) {
+                    return false;
+                }
+            }
+            //XOXX
+        }
+    }
+
+
+//    m_gameOverBoard = m_board;
+//    for (size_t y = 0; y < m_boardHeight; ++y) {
+//        for (size_t x = 0; x < m_boardWidth; ++x) {
+//            if (x < m_boardWidth - 1) {
+//                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x + 1]);
+//                if (matchCheck(m_gameOverBoard)) {
+//                    return false;
+//                }
+//                else {
+//                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x + 1]);
+//                }
+//            }
+//            if (x > 0) {
+//                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x - 1]);
+//                if (matchCheck(m_gameOverBoard)) {
+//                    return false;
+//                }
+//                else {
+//                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y][x - 1]);
+//                }
+//            }
+
+//            if (y < m_boardHeight - 1) {
+//                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y + 1][x]);
+//                if (matchCheck(m_gameOverBoard)) {
+//                    return false;
+//                }
+//                else {
+//                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y + 1][x]);
+//                }
+//            }
+//            if (y > 0) {
+//                std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y - 1][x]);
+//                if (matchCheck(m_gameOverBoard)) {
+//                    return false;
+//                }
+//                else {
+//                    std::swap(m_gameOverBoard[y][x], m_gameOverBoard[y - 1][x]);
+//                }
+//            }
+//        }
+//    }
+
+
     return true;
 }
 
@@ -149,6 +325,12 @@ void GameBoard::removeMarkedTiles()
 
 void GameBoard::addNewTiles()
 {    
+    for (auto tile = m_markedTiles.rbegin() ; tile != m_markedTiles.rend(); ++tile) {
+        beginInsertRows(QModelIndex(), getIndex(Position(tile->first, 0)), getIndex(Position(tile->first, 0)));
+        m_board[tile->first].push_front(getRandomColor());
+        endInsertRows();
+    }
+    /*
     QList<Position> horizontal;
     QList<Position> vertical;
 
@@ -167,16 +349,53 @@ void GameBoard::addNewTiles()
         horizontal.push_front(*m_markedTiles.rbegin());
     }
 
-    if (!vertical.empty()) {
-        beginInsertRows(QModelIndex(),
-                        getIndex(Position(vertical.first().first, 0)),
-                        getIndex(Position(vertical.first().first, vertical.size() - 1)));
+//    if (!vertical.empty()) {
 
-        for (const auto & element : vertical) {
-            m_board[element.first].push_front(getRandomColor());
+//        beginInsertRows(QModelIndex(),
+//                        getIndex(Position(vertical.first().first, 0)),
+//                        getIndex(Position(vertical.first().first, vertical.size() - 1)));
+
+//        for (const auto & element : vertical) {
+//            m_board[element.first].push_front(getRandomColor());
+//        }
+
+//        endInsertRows();
+//    }
+
+    if (!vertical.empty()) {
+
+        auto splitIterator = vertical.end();
+
+        for (auto left = vertical.begin(), right = vertical.begin() + 1; right != vertical.end(); ++left, ++right) {
+            if (right->first != left->first) {
+                splitIterator = right;
+                break;
+            }
         }
 
-        endInsertRows();
+        beginInsertRows(QModelIndex(),
+                        getIndex(Position(vertical.first().first, 0)),
+                        getIndex(Position(vertical.first().first, std::distance(vertical.begin(), splitIterator) - 1)));
+
+       for (auto iterator = vertical.begin(); iterator != splitIterator; ++iterator){
+           m_board[iterator->first].push_front(getRandomColor());
+       }
+
+       endInsertRows();
+
+       if (splitIterator != vertical.end()) {
+
+           beginInsertRows(QModelIndex(),
+                           getIndex(Position(splitIterator->first, 0)),
+                           getIndex(Position(splitIterator->first, std::distance(splitIterator, vertical.end()) - 1)));
+
+           for (auto iterator = splitIterator; iterator != vertical.end(); ++iterator){
+               m_board[iterator->first].push_front(getRandomColor());
+           }
+
+           endInsertRows();
+       }
+
     }
 
     if (!horizontal.empty()) {
@@ -190,6 +409,7 @@ void GameBoard::addNewTiles()
             endInsertRows();
         }
     }
+    */
 }
 
 void GameBoard::switchTiles(int indexFrom, int indexTo)
@@ -324,10 +544,9 @@ void GameBoard::shuffle()
         generateMatches(m_board);
     } while (matchFound());
 
-//    if (gameOverCheck()) {
-//        shuffle();
-//    }
-//    generateMatches(m_board);
+    if (gameOverCheck()) {
+        shuffle();
+    }
 }
 
 bool GameBoard::isAdjacent(const Position f, const Position s)
@@ -413,11 +632,11 @@ void GameBoard::generateMatches(QList<QList<QColor>> &  board)
         }
     }
 
-    for (const auto & el : m_matchedTiles) {
-        qDebug() << el;
-    }
+//    for (const auto & el : m_matchedTiles) {
+//        qDebug() << el;
+//    }
 
-    qDebug() << "----------FULL-----------";
+//    qDebug() << "----------FULL-----------";
 }
 
 size_t GameBoard::moves() const
