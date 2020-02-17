@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QFile>
+#include <algorithm>
 
 GameBoard::GameBoard(QObject * parent)
     : QAbstractListModel (parent)
@@ -148,14 +149,48 @@ void GameBoard::removeMarkedTiles()
 
 void GameBoard::addNewTiles()
 {    
-    for (auto tile = m_markedTiles.rbegin() ; tile != m_markedTiles.rend(); ++tile) {
-        beginInsertRows(QModelIndex(), getIndex(Position(tile->first, 0)), getIndex(Position(tile->first, 0)));
-        m_board[tile->first].push_front(getRandomColor());
+    QList<Position> horizontal;
+    QList<Position> vertical;
+
+    for (auto firstTile = m_markedTiles.rbegin(), secondTile = m_markedTiles.rbegin() + 1; secondTile != m_markedTiles.rend(); ++firstTile, ++secondTile) {
+
+        if (secondTile->first == firstTile->first) {
+            vertical.push_back(*secondTile);
+        } else {
+            horizontal.push_back(*secondTile);
+        }
+    }
+
+    if (!vertical.empty() && m_markedTiles.rbegin()->first == vertical.first().first) {
+        vertical.push_front(*m_markedTiles.rbegin());
+    } else {
+        horizontal.push_front(*m_markedTiles.rbegin());
+    }
+
+    if (!vertical.empty()) {
+        beginInsertRows(QModelIndex(),
+                        getIndex(Position(vertical.first().first, 0)),
+                        getIndex(Position(vertical.first().first, vertical.size() - 1)));
+
+        for (const auto & element : vertical) {
+            m_board[element.first].push_front(getRandomColor());
+        }
+
         endInsertRows();
     }
+
+    if (!horizontal.empty()) {
+        for (const auto & element : horizontal) {
+            beginInsertRows(QModelIndex(),
+                            getIndex(Position(element.first, 0)),
+                            getIndex(Position(element.first, 0)));
+
+            m_board[element.first].push_front(getRandomColor());
+
+            endInsertRows();
+        }
+    }
 }
-//search for sequences where tile->first == each other until not OR tile->second
-//then erase such sequences
 
 void GameBoard::switchTiles(int indexFrom, int indexTo)
 {
@@ -247,7 +282,7 @@ void GameBoard::readJson()
     QJsonArray ptsArray = rootObj.value("colors").toArray();
 
     for (const auto & element : ptsArray) {
-        m_colors.emplace_back(element.toString());
+        m_colors.push_back(element.toString());
     }
 }
 

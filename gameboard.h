@@ -68,8 +68,8 @@ private:
     QList<QList<QColor>> m_board;
     QList<QList<QColor>> m_gameOverBoard;
     QList<QList<QColor>> m_moveBoard;
-    std::deque<QColor> m_colors;
-    std::deque<Position> m_markedTiles;
+    QList<QColor> m_colors;
+    QList   <Position> m_markedTiles;
     QList<QList<int>> m_matchedRows;
     QList<QList<int>> m_matchedColumns;
     QList<QList<int>> m_matchedTiles;
