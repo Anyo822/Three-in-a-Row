@@ -3,5 +3,8 @@
         <file>main.qml</file>
         <file>GameBoard.qml</file>
         <file>settings.json</file>
+        <file>Delegate.qml</file>
+        <file>WrongMoveAnimation.qml</file>
+        <file>GameOverDialog.qml</file>
     </qresource>
 </RCC>

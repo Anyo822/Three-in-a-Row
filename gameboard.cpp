@@ -325,99 +325,46 @@ void GameBoard::removeMarkedTiles()
 
 void GameBoard::addNewTiles()
 {    
-    for (auto tile = m_markedTiles.rbegin() ; tile != m_markedTiles.rend(); ++tile) {
-        beginInsertRows(QModelIndex(), getIndex(Position(tile->first, 0)), getIndex(Position(tile->first, 0)));
-        m_board[tile->first].push_front(getRandomColor());
-        endInsertRows();
-    }
-
 //    for (auto tile = m_markedTiles.rbegin() ; tile != m_markedTiles.rend(); ++tile) {
-//        beginInsertRows(QModelIndex(), getIndex(Position(tile->second, 0)), getIndex(Position(tile->second, 0)));
+//        beginInsertRows(QModelIndex(), getIndex(Position(tile->first, 0)), getIndex(Position(tile->first, 0)));
 //        m_board[tile->first].push_front(getRandomColor());
 //        endInsertRows();
 //    }
 
+    QList<Position> queue;
+    queue.push_back(*m_markedTiles.rbegin());
 
-    /*
-    QList<Position> horizontal;
-    QList<Position> vertical;
+    for (auto secondTile = m_markedTiles.rbegin() + 1; secondTile != m_markedTiles.rend(); ++secondTile) {
 
-    for (auto firstTile = m_markedTiles.rbegin(), secondTile = m_markedTiles.rbegin() + 1; secondTile != m_markedTiles.rend(); ++firstTile, ++secondTile) {
-
-        if (secondTile->first == firstTile->first) {
-            vertical.push_back(*secondTile);
+        if (secondTile->first == queue.last().first) {
+            queue.push_back(*secondTile);
         } else {
-            horizontal.push_back(*secondTile);
-        }
-    }
-
-    if (!vertical.empty() && m_markedTiles.rbegin()->first == vertical.first().first) {
-        vertical.push_front(*m_markedTiles.rbegin());
-    } else {
-        horizontal.push_front(*m_markedTiles.rbegin());
-    }
-
-//    if (!vertical.empty()) {
-
-//        beginInsertRows(QModelIndex(),
-//                        getIndex(Position(vertical.first().first, 0)),
-//                        getIndex(Position(vertical.first().first, vertical.size() - 1)));
-
-//        for (const auto & element : vertical) {
-//            m_board[element.first].push_front(getRandomColor());
-//        }
-
-//        endInsertRows();
-//    }
-
-    if (!vertical.empty()) {
-
-        auto splitIterator = vertical.end();
-
-        for (auto left = vertical.begin(), right = vertical.begin() + 1; right != vertical.end(); ++left, ++right) {
-            if (right->first != left->first) {
-                splitIterator = right;
-                break;
-            }
-        }
-
-        beginInsertRows(QModelIndex(),
-                        getIndex(Position(vertical.first().first, 0)),
-                        getIndex(Position(vertical.first().first, std::distance(vertical.begin(), splitIterator) - 1)));
-
-       for (auto iterator = vertical.begin(); iterator != splitIterator; ++iterator){
-           m_board[iterator->first].push_front(getRandomColor());
-       }
-
-       endInsertRows();
-
-       if (splitIterator != vertical.end()) {
-
-           beginInsertRows(QModelIndex(),
-                           getIndex(Position(splitIterator->first, 0)),
-                           getIndex(Position(splitIterator->first, std::distance(splitIterator, vertical.end()) - 1)));
-
-           for (auto iterator = splitIterator; iterator != vertical.end(); ++iterator){
-               m_board[iterator->first].push_front(getRandomColor());
-           }
-
-           endInsertRows();
-       }
-
-    }
-
-    if (!horizontal.empty()) {
-        for (const auto & element : horizontal) {
             beginInsertRows(QModelIndex(),
-                            getIndex(Position(element.first, 0)),
-                            getIndex(Position(element.first, 0)));
+                            getIndex(Position(queue.first().first, 0)),
+                            getIndex(Position(queue.first().first, queue.size() - 1)));
 
-            m_board[element.first].push_front(getRandomColor());
+            for (const auto & element : queue) {
+                m_board[element.first].push_front(getRandomColor());
+            }
 
             endInsertRows();
+
+            queue.clear();
+            queue.push_back(*secondTile);
         }
     }
-    */
+
+    if (!queue.empty()) {
+        beginInsertRows(QModelIndex(),
+                        getIndex(Position(queue.first().first, 0)),
+                        getIndex(Position(queue.first().first, queue.size() - 1)));
+
+        for (const auto & element : queue) {
+            m_board[element.first].push_front(getRandomColor());
+        }
+
+        endInsertRows();
+    }
 }
 
 void GameBoard::switchTiles(int indexFrom, int indexTo)
@@ -478,17 +425,13 @@ GameBoard::Position GameBoard::getRowCol(size_t index) const
 {
     size_t row = index / m_boardWidth;
     size_t column = index % m_boardWidth;
-//    size_t row = index % m_boardHeight;
-//    size_t column = index / m_boardHeight;
 
     return std::make_pair(row, column);
-//    return std::make_pair(column, row);
 }
 
 int GameBoard::getIndex(const GameBoard::Position position) const
 {
     return position.first * m_boardWidth + position.second;
-//    return position.first + position.second * m_boardHeight;
 }
 
 void GameBoard::readJson()
@@ -533,7 +476,6 @@ QVariant GameBoard::data(const QModelIndex & index, int role) const
     }
 
     Position indexPosition = getRowCol(index.row());
-    int a = index.row();
 
     if (indexPosition.first < m_board.size() &&  indexPosition.second < m_board[indexPosition.first].size()) {
         return QVariant::fromValue(m_board[indexPosition.first][indexPosition.second]);
@@ -642,11 +584,11 @@ void GameBoard::generateMatches(QList<QList<QColor>> &  board)
         }
     }
 
-    for (const auto & el : m_matchedTiles) {
-        qDebug() << el;
-    }
+//    for (const auto & el : m_matchedTiles) {
+//        qDebug() << el;
+//    }
 
-    qDebug() << "----------FULL-----------";
+//    qDebug() << "----------FULL-----------";
 }
 
 size_t GameBoard::moves() const

@@ -1,6 +1,5 @@
 import QtQuick 2.14
 import ThreeInARow 1.0
-import QtQuick.Dialogs 1.1
 
 GridView {
     id: gridView
@@ -19,72 +18,7 @@ GridView {
 
     model: GameBoardModel {}
 
-    delegate: Item {
-        width: gridView.cellWidth
-        height: gridView.cellHeight
-
-        Rectangle {
-            id: tile
-
-            width: gridView.cellWidth < gridView.cellHeight ? gridView.cellWidth : gridView.cellHeight
-            height: width
-            radius: width * 0.5
-
-            color: index === currentIndex ? Qt.darker(decoration) : decoration
-            border.color: "black"
-            border.width: 1
-
-            Text {
-                text: index
-            }
-
-            MouseArea {
-                anchors.fill: parent
-
-                onClicked: {
-                    if (currentIndex != -1 && currentIndex != index) {
-                        gridView.model.makeMove(currentIndex, index);
-                        currentIndex = -1;
-                    } else if (currentIndex == index) {
-                        currentIndex = -1
-                    } else {
-                        currentIndex = index;
-                    }
-                }
-            }
-        }
-    }
-
-    Connections {
-        target: gridView.model
-
-        onWrongMove: {
-            itemFrom = gridView.itemAtIndex(indexFrom);
-            itemTo = gridView.itemAtIndex(indexTo);
-
-            wrongMoveAnimation.start();
-        }
-    }
-
-    SequentialAnimation {
-        id: wrongMoveAnimation
-        loops: 2
-
-        NumberAnimation {
-            targets: [itemFrom, itemTo]
-            property: "scale"
-            to: 0.7
-            easing.type: "InOutQuad"
-            easing.overshoot: 100
-        }
-        NumberAnimation {
-            targets: [itemFrom, itemTo]
-            property: "scale"
-            to: 1
-            easing.type: "InOutQuad"
-            easing.overshoot: 100
-        }
-    }
+    delegate: Delegate {}
 
     move: Transition {
         NumberAnimation {
@@ -126,13 +60,24 @@ GridView {
         }
     }
 
-    MessageDialog {
+    Connections {
+        target: gridView.model
+
+        onWrongMove: {
+            itemFrom = gridView.itemAtIndex(indexFrom);
+            itemTo = gridView.itemAtIndex(indexTo);
+
+            wrongMoveAnimation.start();
+        }
+    }
+
+    GameOverDialog {
         id: messageDialog
-        title: "May I have your attention please"
-        text: "Game Over, restart?"
-        standardButtons: StandardButton.Yes | StandardButton.No
-        onYes: gridView.model.shuffle();
-        onNo: Qt.quit();
+    }
+
+    WrongMoveAnimation {
+        id: wrongMoveAnimation
+        loops: 2
     }
 }
 
