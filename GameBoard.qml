@@ -5,8 +5,8 @@ import QtQuick.Dialogs 1.1
 GridView {
     id: gridView
 
-    cellHeight: height / model.boardHeight
-    cellWidth: width / model.boardWidth
+    cellHeight: height / model.boardWidth
+    cellWidth: width / model.boardHeight
 
     flow: GridView.FlowTopToBottom
     interactive: false
@@ -33,6 +33,10 @@ GridView {
             color: index === currentIndex ? Qt.darker(decoration) : decoration
             border.color: "black"
             border.width: 1
+
+            Text {
+                text: index
+            }
 
             MouseArea {
                 anchors.fill: parent

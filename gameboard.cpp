@@ -330,6 +330,14 @@ void GameBoard::addNewTiles()
         m_board[tile->first].push_front(getRandomColor());
         endInsertRows();
     }
+
+//    for (auto tile = m_markedTiles.rbegin() ; tile != m_markedTiles.rend(); ++tile) {
+//        beginInsertRows(QModelIndex(), getIndex(Position(tile->second, 0)), getIndex(Position(tile->second, 0)));
+//        m_board[tile->first].push_front(getRandomColor());
+//        endInsertRows();
+//    }
+
+
     /*
     QList<Position> horizontal;
     QList<Position> vertical;
@@ -468,18 +476,19 @@ bool GameBoard::makeMove(int indexFrom, int indexTo)
 
 GameBoard::Position GameBoard::getRowCol(size_t index) const
 {
-    Q_ASSERT(m_boardHeight > 0 &&  m_boardWidth > 0);
-    size_t row = index / m_boardHeight;
+    size_t row = index / m_boardWidth;
     size_t column = index % m_boardWidth;
+//    size_t row = index % m_boardHeight;
+//    size_t column = index / m_boardHeight;
 
     return std::make_pair(row, column);
+//    return std::make_pair(column, row);
 }
 
 int GameBoard::getIndex(const GameBoard::Position position) const
 {
-    Q_ASSERT(m_boardHeight > 0);
-
-    return position.first * m_boardHeight + position.second;
+    return position.first * m_boardWidth + position.second;
+//    return position.first + position.second * m_boardHeight;
 }
 
 void GameBoard::readJson()
@@ -514,7 +523,7 @@ QColor GameBoard::getRandomColor()
 int GameBoard::rowCount(const QModelIndex & parent) const
 {
     Q_UNUSED(parent)
-    return m_board.size() * m_board[0].size();
+    return m_boardHeight * m_boardWidth;
 }
 
 QVariant GameBoard::data(const QModelIndex & index, int role) const
@@ -524,6 +533,7 @@ QVariant GameBoard::data(const QModelIndex & index, int role) const
     }
 
     Position indexPosition = getRowCol(index.row());
+    int a = index.row();
 
     if (indexPosition.first < m_board.size() &&  indexPosition.second < m_board[indexPosition.first].size()) {
         return QVariant::fromValue(m_board[indexPosition.first][indexPosition.second]);
@@ -632,11 +642,11 @@ void GameBoard::generateMatches(QList<QList<QColor>> &  board)
         }
     }
 
-//    for (const auto & el : m_matchedTiles) {
-//        qDebug() << el;
-//    }
+    for (const auto & el : m_matchedTiles) {
+        qDebug() << el;
+    }
 
-//    qDebug() << "----------FULL-----------";
+    qDebug() << "----------FULL-----------";
 }
 
 size_t GameBoard::moves() const
